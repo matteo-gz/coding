@@ -2,7 +2,7 @@
 title: delete、truncate、drop
 ---
 
-速度:drop > truncate >> DELETE
+速度:drop > truncate > DELETE
 
 delete :dml
 

@@ -1,3 +1,4 @@
 ---
+bookCollapseSection: false
 title: golang
 ---

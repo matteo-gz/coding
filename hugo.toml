@@ -2,6 +2,7 @@ baseURL = 'http://example.org/'
 languageCode = 'en-us'
 title = 'Coding cheat sheet'
 theme = 'hugo-book'
+disqusShortname = "https-matteo-gz-github-io"
 [params]
 BookSearch = true
 DateFormat = "January 2, 2006"

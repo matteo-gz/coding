@@ -1,7 +1,7 @@
 ---
 title: 数据类型
 ---
-# 数据类型
+## 数据类型
 - string
 - hash
 - list

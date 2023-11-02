@@ -1,5 +1,5 @@
 ---
-title: count(*) 和 count(1) 有什么区别
+title: count
 ---
 
 ## count(1) and count(*)

@@ -16,9 +16,9 @@ TTL，全称Time To Live，消息过期时间设置。消息的TTL就是消息�
 
 消息成为死信的三种情况：
 
-1.  队列消息长度到达限制；
-2.  消费者拒接消费消息，basicNack/basicReject,并且不把消息重新放入原目标队 列,requeue=false；
-3.  原队列存在消息过期设置，消息到达超时时间未被消费；
+1.  队列消息长度到达限制
+2.  消费者拒接消费消息，basicNack/basicReject,并且不把消息重新放入原目标队 列,requeue=false
+3.  原队列存在消息过期设置，消息到达超时时间未被消费
 
 队列绑定死信交换机，给队列设置参数： x-dead-letter-exchange 和 x-dead-letter-routing-key，就能成功绑定了
 

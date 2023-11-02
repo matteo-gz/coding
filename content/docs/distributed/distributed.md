@@ -1,18 +1,18 @@
 ---
-title: 分布式事务
+title: BASE理论
 ---
 
 ## CAP原则
 
 CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分布式计算系统中，无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三个目标。
 
-- 一致性（Consistency）
+### 一致性（Consistency）
 
 要求系统中的所有节点在同一时间具有相同的数据副本，即读操作应该总是返回最新的写操作结果。
-- 可用性（Availability）
+### 可用性（Availability）
 
 要求系统在任何时间都能够提供响应，即系统不会因为部分节点的故障而导致整个系统不可用。
-- 分区容错性（Partition tolerance）
+### 分区容错性（Partition tolerance）
 
 要求系统能够继续运行，即使系统内的节点因为网络问题而无法互相通信。
 
@@ -24,13 +24,13 @@ CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分
 BASE理论是对CAP原则的一种实践指导，它是对传统ACID（原子性、一致性、隔离性和持久性）事务模型的一种松散的替代理论。BASE代表着基本可用（Basically Available）、软状态（Soft State）和最终一致性（Eventually Consistent）。
 
 
-- 基本可用（Basically Available）
+### 基本可用（Basically Available）
 
 系统保证在面对部分故障或者分区的情况下，仍能够提供基本的可用性和服务能力，即系统能够对用户的请求做出响应，尽管可能会有部分功能受限或者性能下降。
-- 软状态（Soft State）
+### 软状态（Soft State）
 
 系统中的数据状态不需要实时保持一致，允许在一段时间内存在不同节点之间的数据副本不一致的情况。这意味着系统可以容忍一定的数据冗余和延迟，以换取更高的可用性和性能。
-- 最终一致性（Eventually Consistent）
+### 最终一致性（Eventually Consistent）
 
 系统会在一段时间内尽可能地使数据达到一致状态，但并不要求实时保证一致性。系统允许在数据复制和同步过程中存在一定的延迟和不一致，但最终会达到一致的状态。
 

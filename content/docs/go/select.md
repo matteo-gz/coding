@@ -1,8 +1,6 @@
 ---
 title: select
 ---
-# select
-
 ## select作用
 - case后面必须是io操作
 - 监听case，没满足阻塞

@@ -1,8 +1,6 @@
 ---
 title: map
 ---
-# map
-
 ## 结构
 ```go
 // Go map 的头部。

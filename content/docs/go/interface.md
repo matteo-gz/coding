@@ -1,4 +1,6 @@
-# interface
+---
+title: interface
+---
 ## 数据结构
 ```go
 // 结构体表示包含方法的接口

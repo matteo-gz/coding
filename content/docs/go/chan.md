@@ -1,7 +1,6 @@
 ---
 title: chan
 ---
-# chan
 ## 操作chan
 创建chan
 ```go

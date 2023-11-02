@@ -1,8 +1,6 @@
 ---
 title: slice
 ---
-# slice
-
 ## 数据结构
 
 ```go

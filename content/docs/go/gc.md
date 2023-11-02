@@ -1,7 +1,6 @@
 ---
 title: gc
 ---
-# gc
 ## 标记-清除算法
 
  STW(stop the world) 让程序暂停，程序出现卡顿

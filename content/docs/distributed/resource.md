@@ -1,6 +1,7 @@
 ---
 title: 03. 资源与负载
 ---
+> [极客时间.分布式技术原理与算法解析](https://time.geekbang.org/column/intro/100036401) 笔记
 ## 分布式体系结构
 ### 集中式结构
 - Google Borg

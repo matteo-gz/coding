@@ -270,76 +270,7 @@ PoW 的容错机制,允许全网 50% 的节点出错.缺点是共识达成的周
 > 如果叛将人数为 **m**，将军人数不能少于 **3m + 1** ，那么拜占庭将军问题就能解决了. [The Byzantine Generals Problem by Leslie Lamport](https://lamport.azurewebsites.net/pubs/byz.pdf)
 
 消息签名机制防伪
-## 分布式事务
-> 分布式事务，就是在分布式系统中运行的事务，由多个本地事务组合而成
 
-方案
-- 基于 XA 协议的二阶段提交协议方法
-- 三阶段提交协议方法
-- 基于消息的最终一致性方法
-
-### XA二阶段提交
-二阶段提交: Two-Phase Commit，2PC
-
-XA(Extended Architecture)是一个分布式事务协议
-
-涉及对象
-- 事务管理器 // 事务协调者Transaction Coordinator,负责各个本地资源的提交和回滚
-- 本地资源管理器 // 分布式事务的参与者Participants,执行实际的操作,如数据库或其他资源
-
-执行过程
-- 投票（voting）
-- 提交（commit）
-
-举例
-
-**第一阶段**
-{{<mermaid>}}
-sequenceDiagram
-participant 协调者
-participant 订单系统
-participant 库存系统
-
-协调者->>订单系统: 询问订单情况
-订单系统-->>协调者: 锁定用户A相关订单,增加一条购买100件T恤的订单
-订单系统-->>协调者: 回复同意消息"Yes"
-
-协调者->>库存系统: 询问出货情况
-库存系统-->>协调者: 回复库存不足信息"No"
-
-{{</mermaid>}}
-**第二阶段**
-{{<mermaid>}}
-sequenceDiagram
-participant 协调者
-participant 订单系统
-participant 库存系统
-
-
-协调者->>订单系统: 发送"DoAbort"消息
-订单系统-->>协调者: 回复"HaveCommitted"消息
-
-协调者->>库存系统: 发送"DoAbort"消息
-库存系统-->>协调者: 回复"HaveCommitted"消息
-
-{{</mermaid>}}
-
-缺点:
-- 同步阻塞问题
-- 单点故障问题
-- 数据不一致问题
-
-### 三阶段提交方法
-> 三阶段提交协议（Three-phase commit protocol，3PC）,三阶段提交引入了**超时**机制和准备阶段
-
-- CanCommit
-- PreCommit // 因为超时或条件不充分进行快速失败
-- DoCommit
-### 消息最终一致性
-> 将需要分布式处理的事务通过消息或者日志的方式异步执行，消息或日志可以存到本地文件、数据库或消息队列中，再通过业务规则进行**失败重试**
-
-
-是BASE理论体现,牺牲了强一致性采取最终一致性.
 
 ## 分布式锁
 > 锁是实现多线程同时访问同一共享资源，保证同一时刻只有一个线程可访问共享资源所做的一种标记

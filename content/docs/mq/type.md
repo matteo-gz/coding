@@ -1,0 +1,11 @@
+---
+title: 其他mq
+---
+- MQ
+  - Kafka
+  - RocketMQ
+  - RabbitMQ
+- Redis实现
+  - 基于 Redis List 的 LPUSH 和 RPOP 的实现方式
+  - 基于 Redis 的订阅或发布模式
+  - 基于 Redis 的有序集合（Sorted Set）的实现方式

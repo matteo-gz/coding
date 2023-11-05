@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>分布式 on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/docs/distributed/</link>
+    <description>Recent content in 分布式 on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/docs/distributed/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>01. 分布式简介</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/define/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/define/</guid>
+      <description> 极客时间.分布式技术原理与算法解析 笔记
+分布式定义 # 分布式其实就是将相同或相关的程序运行在多台计算机上，从而实现特定目标的一种计算方式.
+分布式形态
+数据并行 任务并行 分布式驱动力量
+性能 可用性 可扩展性 指标 # 性能 # 吞吐量 QPS（Queries Per Second） TPS（Transactions Per Second） BPS（Bits Per Second） 响应时间 完成时间 资源占用 # 空载资源占用 满载资源占用 可用性 # 系统的可用性可以用系统停止服务的时间与总的时间之比衡量
+某功能的失败次数与总的请求次数之比来衡量
+可扩展性 # 当任务的需求随着具体业务不断提高时，除了升级系统的性能做垂直 / 纵向扩展外， 另一个做法就是通过增加机器的方式去水平 / 横向扩展系统规模。
+系统可扩展性的常见指标是加速比（Speedup），也就是一个系统进行扩展后相对扩展前的性能提升
+不同场景下分布式系统的指标
+电商系统 //重吞吐量 IoT //资源占用指标,可以资源占用KB级的 电信业务 // 响应时间、完成时间，以及可用性 HPC // 任务执行时间极长,水平扩展来提高系统的加速比 大数据 // 扩展性 云计算 // 减少用户操作时间,降低系统资源开销 区块链 // 吞吐量和完成时间 </description>
+    </item>
+    
+    <item>
+      <title>02. 协调与同步</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/coordination/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/coordination/</guid>
+      <description>极客时间.分布式技术原理与算法解析 笔记
+分布式互斥 # 在分布式系统里，排他性的资源访问方式，叫作分布式互斥（Distributed Mutual Exclusion）， 而这种被互斥访问的共享资源就叫作临界资源（Critical Resource）
+集中式算法 # 协调者参与
+graph TB subgraph 分布式系统 A[程序 A] --&gt; C[协调者] B[程序 B] --&gt; C[协调者] end subgraph 互斥算法 C[协调者] --&gt; D[发送请求] D --&gt; E[检查资源状态] E --&gt; |资源空闲| F[授权访问] E --&gt; |资源占用| G[排号等待] G --&gt; H[接收通知] H --&gt; D F --&gt; I[访问资源] I --&gt; J[释放资源] J --&gt; |通知协调者| C end 优点
+开发和实现简单,不存在节点间的协调问题 数据一致性易于控制 故障修复相对简单 缺点
+可靠性和性能依赖于中心节点 中心节点出故障或压力过大会导致整体服务挂掉 难以水平扩展以提升吞吐量 分布式算法 # 定义</description>
+    </item>
+    
+    <item>
+      <title>02.1 分布式事务</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/dt/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/dt/</guid>
+      <description>简介 # 分布式事务，就是在分布式系统中运行的事务，由多个本地事务组合而成
+方案
+基于 XA 协议的二阶段提交协议方法 三阶段提交协议方法 基于消息的最终一致性方法 XA二阶段提交 # 二阶段提交: Two-Phase Commit，2PC
+XA(Extended Architecture)是一个分布式事务协议
+涉及对象
+事务管理器 // 事务协调者Transaction Coordinator,负责各个本地资源的提交和回滚 本地资源管理器 // 分布式事务的参与者Participants,执行实际的操作,如数据库或其他资源 执行过程
+投票（voting） 提交（commit） 举例
+第一阶段 sequenceDiagram participant 协调者 participant 订单系统 participant 库存系统 协调者-&gt;&gt;订单系统: 询问订单情况 订单系统--&gt;&gt;协调者: 锁定用户A相关订单,增加一条购买100件T恤的订单 订单系统--&gt;&gt;协调者: 回复同意消息&#34;Yes&#34; 协调者-&gt;&gt;库存系统: 询问出货情况 库存系统--&gt;&gt;协调者: 回复库存不足信息&#34;No&#34; 第二阶段 sequenceDiagram participant 协调者 participant 订单系统 participant 库存系统 协调者-&gt;&gt;订单系统: 发送&#34;DoAbort&#34;消息 订单系统--&gt;&gt;协调者: 回复&#34;HaveCommitted&#34;消息 协调者-&gt;&gt;库存系统: 发送&#34;DoAbort&#34;消息 库存系统--&gt;&gt;协调者: 回复&#34;HaveCommitted&#34;消息 缺点 # 同步阻塞问题 单点故障问题 数据不一致问题 三阶段提交方法 # 三阶段提交协议（Three-phase commit protocol，3PC）,三阶段提交引入了超时机制和准备阶段</description>
+    </item>
+    
+    <item>
+      <title>03. 资源与负载</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/resource/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/resource/</guid>
+      <description> 极客时间.分布式技术原理与算法解析 笔记
+分布式体系结构 # 集中式结构 # Google Borg Kubernetes Mesos 非集中式结构 # Akka 集群 Redis 集群 Cassandra 集群 调度 # 而为用户任务寻找合适的服务器这个过程，在分布式领域中叫作调度.
+调度是以任务为单位的，而不是以作业为单位.
+单体调度 # 是由一个中央调度器去管理整个集群的资源信息和任务调度，也就是说所有任务只能通过中央调度器进行调度
+Borg 调度算法
+可行性检查，找到一组可以运行任务的机器（Borglet） 评分，从可行的机器中选择一个合适的机器（Borglet） 最差匹配 最佳匹配 两层调度 # 是将资源管理和任务调度分为两层来调度。
+第一层调度器负责集群资源管理，并将可用资源发送给第二层调度 第二层调度接收到第一层调度发送的资源，进行任务调度 共享状态调度 # 多个调度器，每个调度器都可以看到集群的全局资源信息，并根据这些信息进行任务调度
+分布式计算 # MapReduce // 分而治之 Stream // 实时 Actor Erlang/OTP Akka Quasar (Java) Pipeline 分布式通信 # RPC Pub/Sub 消息队列 </description>
+    </item>
+    
+    <item>
+      <title>03.1 分布式存储</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/ds/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/ds/</guid>
+      <description>CAP # CA CP AP 场景 单机 强一致性,金融银行 及时响应,容忍一致性,商品查询 应用 Mysql Redis,Hbase,ZooKeeper CoachDB,Cassandra,DynamoDB 数据分片 # 数据分片即按照一定的规则将数据路由到相应的存储节点中，从而降低单存储节点带来的读写压力
+哈希分片 根据key的哈希值来决定分配到哪个分片 不依赖key的顺序,只依赖哈希函数 范围分片 根据key的大小顺序来决定属于哪个分片范围 依赖于key有明确的大小顺序 一致性哈希环 将节点和数据项映射到一个虚拟圆环空间上 通过这种映射来实现分片和负载均衡 对节点添加和删除影响较小 一致性哈希环 # hash算法的缺陷 好刚: 7分钟视频详解一致性hash 算法
+以图片服务器举例,我们希望图片均匀落在不同的图片服务器上.
+以图片名为key,hash后再根据机器数取模,在此规则下.
+假设图片hash=6,机器数为3, %3=0,则图片放置在0号服务器.
+此时,我们增加1台机器,机器数为4,图片hash依旧为6,%4=2,则映射到了2号服务器,
+此时原本在0号服务器的图片,去了2号服务器查找不存在,又要通过后端服务查找一遍,可能导致缓存雪崩.
+一致性哈希环 则可以减少数据失效程度. hash偏斜与虚拟节点 数据结构分类 # 分布式数据库
+MySQL Sharding Microsoft SQL Azure Google Spanner Alibaba OceanBase KV数据库
+Redis Memcache 分布式存储系统
+Ceph GFS HDFS Swift 数据一致性 # 强一致性 数据一致性 Raft 协议 Gossip 协议 Gossip # 分布式原理：10分钟带你全面了解Gossip协议！</description>
+    </item>
+    
+    <item>
+      <title>BASE理论</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/distributed/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/distributed/</guid>
+      <description> CAP原则 # CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分布式计算系统中，无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三个目标。
+一致性（Consistency） # 要求系统中的所有节点在同一时间具有相同的数据副本，即读操作应该总是返回最新的写操作结果。
+可用性（Availability） # 要求系统在任何时间都能够提供响应，即系统不会因为部分节点的故障而导致整个系统不可用。
+分区容错性（Partition tolerance） # 要求系统能够继续运行，即使系统内的节点因为网络问题而无法互相通信。
+根据CAP原则，当一个分布式系统发生网络分区时，为了保证系统的可用性和分区容错性，必须选择放弃一致性。这意味着在网络分区的情况下，系统可以选择提供最新的数据副本（追求一致性），但这可能导致某些节点无法访问；或者系统可以继续提供访问服务（追求可用性），但可能会返回不一致的数据。
+需要注意的是，CAP原则并不是指分布式系统必须选择放弃一致性，而是在面临网络分区时需要做出权衡。不同的分布式系统可能会根据具体需求和设计目标，在一致性、可用性和分区容错性之间作出不同的选择。
+BASE理论 # BASE理论是对CAP原则的一种实践指导，它是对传统ACID（原子性、一致性、隔离性和持久性）事务模型的一种松散的替代理论。BASE代表着基本可用（Basically Available）、软状态（Soft State）和最终一致性（Eventually Consistent）。
+基本可用（Basically Available） # 系统保证在面对部分故障或者分区的情况下，仍能够提供基本的可用性和服务能力，即系统能够对用户的请求做出响应，尽管可能会有部分功能受限或者性能下降。
+软状态（Soft State） # 系统中的数据状态不需要实时保持一致，允许在一段时间内存在不同节点之间的数据副本不一致的情况。这意味着系统可以容忍一定的数据冗余和延迟，以换取更高的可用性和性能。
+最终一致性（Eventually Consistent） # 系统会在一段时间内尽可能地使数据达到一致状态，但并不要求实时保证一致性。系统允许在数据复制和同步过程中存在一定的延迟和不一致，但最终会达到一致的状态。
+BASE理论的核心思想是放宽对一致性的要求，以换取更高的可用性、性能和分布式容错性。相比于ACID事务模型的强一致性和事务隔离性，BASE理论提供了更灵活的设计选择，特别适用于大规模分布式系统和互联网应用场景。在BASE理论下，系统设计者需要根据具体的业务需求和系统特点，权衡一致性与可用性之间的取舍，并选择适当的一致性模型和数据同步策略。
+幂等 # 任意次执行都会产生相同的结果：无论操作执行多少次，结果都是相同的，不会受到重复执行的影响。 重复执行不会引起不良影响：对于已经执行过的操作，重复执行不会引起任何不良的副作用或状态变化。 </description>
+    </item>
+    
+    <item>
+      <title>etcd</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/etcd/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/etcd/</guid>
+      <description>极客时间.etcd 实战课 笔记
+历史 # 背景: CoreOS 团队需要一个协调服务来存储服务配置信息、提供分布式锁等能力
+服务所需目标:
+高可用 数据一致,提供读取&amp;quot;最新&amp;quot;数据 低容量、仅存储关键元数据配置 增删改查，监听数据变化的机制 可维护性 名字来源: unix /etc + d of distribute
+历史版本变化
+v0.1 # Raft算法共识 REST API 数据模型使用的是基于目录的层次模式// 参考ZooKeeper key-value 存储引擎上,简单内存树 Go语言 v0.2 # 支持consistent read CAS提供原子性 //替换掉Test And Set 机制 v2.0 # 支持quorum read v3 # 引入 B-tree,boltdb 实现一个 MVCC 数据库 数据模型从层次型目录结构改成扁平的 key-value gRPC+protobuf 特性
+提供稳定可靠的事件通知 实现了事务 支持多 key 原子更新 同时基于 boltdb 的持久化存储，显著降低了 etcd 的内存占用、避免了 etcd v2 定期生成快照时的昂贵的资源开销.</description>
+    </item>
+    
+    <item>
+      <title>raft与etcd</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/raft-etcd/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/raft-etcd/</guid>
+      <description>主要解决问题点 # Leader选举，Leader故障后集群能快速选出新Leader； 日志复制， 集群只有Leader能写入日志， Leader负责复制日志到Follower节点，并强制Follower节点与自己保持相同； 安全性，一个任期内集群只能产生一个Leader、已提交的日志条目在发生Leader选举时，一定会存在更高任期的新Leader日志中、各个节点的状态机应用的任意位置的日志条目内容应一样等。 角色 # 角色 说明 Leader 主节点 同一时刻只有一个 Leader，负责协调和管理其他节点. 唯一性，拥有同步日志的特权，需定时广播心跳给Follower节点，以维持领导者身份。 Candidate 候选者 每一个节点都可以成为 Candidate，节点在该角色下才可以被选为新的 Leader Follower Leader 的跟随者 不可以发起选举 当Follower节点接收Leader节点心跳消息超时后，它会转变成Candidate节点，并可发起竞选Leader投票，若获得集群多数节点的支持后，它就可转变成Leader节点
+graph RL F[Follower] C[Candidate] L[Leader] L--&gt;|发现更大term|F C--&gt;|发现有了新的任期或新主|F F --&gt;|长时间没有收到leader消息,开始竞选|C C--&gt;|收到一半以上选票|L 流程 # 初始化时，所有节点均为 Follower 状态。 开始选主时，所有节点的状态由 Follower 转化为 Candidate，并向其他节点发送选举请求。 其他节点根据接收到的选举请求的先后顺序，回复是否同意成为主。这里需要注意的是，在每一轮选举中，一个节点只能投出一张票。 若发起选举请求的节点获得超过一半的投票，则成为主节点，其状态转化为 Leader，其他节点的状态则由 Candidate 降为 Follower。Leader 节点与 Follower 节点之间会定期发送心跳包，以检测主节点是否活着。 当 Leader 节点的任期到了，即发现其他服务器开始下一轮选主周期时，Leader 节点的状态由 Leader 降级为 Follower，进入新一轮选主。 etcd Leader选举原理 # 下面以Leader crash场景为案例，介绍一下etcd Leader选举原理
+假设集群总共3个节点，A节点为Leader，B、C节点为Follower。
+Leader维持身份 # 如上Leader选举图左边部分所示， 正常情况下，Leader节点会按照心跳间隔时间，定时广播心跳消息（MsgHeartbeat消息）给Follower节点，以维持Leader身份。 Follower收到后回复心跳应答包消息（MsgHeartbeatResp消息）给Leader。</description>
+    </item>
+    
+    <item>
+      <title>SaaS多租户存储设计</title>
+      <link>https://matteo-gz.github.io/coding/docs/distributed/saas/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/distributed/saas/</guid>
+      <description> 数据隔离模式 # 独立数据库 实例成本高 共享数据库但隔离Schema 租户之间共享工作负载,需要迁移出大租户. 统计计费困难 数据表字段区分 需要代码兼容,研发成本高,数据安全性低. 框架流程
+租户id解析,在handle业务请求时,解析出当前租户id 将租户id放入context中 根据租户id调用多租户存储连接器获取当前租户数据实例 代码层实现scope,在method行为前后进行注入. </description>
+    </item>
+    
+  </channel>
+</rss>

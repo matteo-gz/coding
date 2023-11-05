@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Categories on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/categories/</link>
+    <description>Recent content in Categories on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/categories/index.xml" rel="self" type="application/rss+xml" />
+  </channel>
+</rss>

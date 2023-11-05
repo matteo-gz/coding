@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>web on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/docs/web/</link>
+    <description>Recent content in web on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/docs/web/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>OpenResty</title>
+      <link>https://matteo-gz.github.io/coding/docs/web/openresty/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/web/openresty/</guid>
+      <description>简介 # OpenResty 是一个兼具开发效率和性能的服务端开发平台，基于 NGINX 实现，包含反向代理和负载均衡.
+核心 # NGINX 的一个 C 模块（lua-nginx-module）.
+该模块将 LuaJIT 嵌入到 NGINX 服务器中，并对外提供一套完整的 Lua API，透明地支持非阻塞 I/O，提供了轻量级线程、定时器等高级抽象。
+同时，围绕这个模块，OpenResty 构建了一套完备的测试框架、调试技术以及由 Lua 实现的周边功能库
+用Lua 语言来进行 字符串和数值运算 查询数据库 发送 HTTP 请求 执行定时任务 调用外部命令 &amp;hellip; 可以用 FFI 的方式调用外部 C 函数 特性 # OpenResty作者章亦春, 就职于淘宝,后就职于Cloudflare
+详尽的文档和测试用例 同步非阻塞 动态 例子 # cli # $ resty -e &amp;#34;ngx.say(&amp;#39;hello world&amp;#39;)&amp;#34; hello world web # events { worker_connections 1024; } http { server { listen 8080; location / { content_by_lua &amp;#39; ngx.</description>
+    </item>
+    
+  </channel>
+</rss>

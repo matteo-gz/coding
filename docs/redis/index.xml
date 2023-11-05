@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>redis on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/docs/redis/</link>
+    <description>Recent content in redis on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/docs/redis/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>一致性风险</title>
+      <link>https://matteo-gz.github.io/coding/docs/redis/consistency/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/redis/consistency/</guid>
+      <description>分布式锁的三个主要核心要素 # 安全性、互斥性。在同一时间内，不允许多个client同时获得锁。 活性。无论client出现crash还是遭遇网络分区，你都需要确保任意故障场景下，都不会出现死锁，常用的解决方案是超时和自动过期机制。 高可用、高性能。加锁、释放锁的过程性能开销要尽量低，同时要保证高可用，避免单点故障。 茅台超卖案例 # Redis——由分布式锁造成的重大事故
+仔细分析下来，可以发现，这个抢购接口在高并发场景下，是有严重的安全隐患的，主要集中在三个地方：
+没有其他系统风险容错处理 由于用户服务吃紧，网关响应延迟，但没有任何应对方式，这是超卖的导火索。
+看似安全的分布式锁其实一点都不安全 虽然采用了set key value [EX seconds] [PX milliseconds] [NX|XX]的方式，但是如果线程A执行的时间较长没有来得及释放，锁就过期了，此时线程B是可以获取到锁的。当线程A执行完成之后，释放锁，实际上就把线程B的锁释放掉了。这个时候，线程C又是可以获取到锁的，而此时如果线程B执行完释放锁实际上就是释放的线程C设置的锁。这是超卖的直接原因。
+非原子性的库存校验 非原子性的库存校验导致在并发场景下，库存校验的结果不准确。这是超卖的根本原因。
+通过以上分析，问题的根本原因在于库存校验严重依赖了分布式锁。
+因为在分布式锁正常set、del的情况下，库存校验是没有问题的。
+但是，当分布式锁不安全可靠的时候，库存校验就没有用了。
+其他风险 # 单Redis Master节点存在单点故障
+一主多备Redis实例又因为Redis主备异步复制，当Master节点发生crash时，可能会导致同时多个client持有分布式锁，违反了锁的安全性问题
+一般使用 setnx 方法，通过 Redis 实现锁和超时时间来控制锁的失效时间。但是在极端的情况下，当 Reids 主节点挂掉，但锁还没有同步到从节点时，根据哨兵机制，从就变成了主，继续提供服务。 这时，另外的线程可以再来请求锁，此时就会出现两个线程拿到了锁的情况。
+setnx和expire命令分开写,没有原子性
+lua脚本 SET key value NX EX seconds 忘记设置过期时间
+存在app崩溃,导致锁永远无法释放 RedLock分布式锁 # 它基于多个独立的Redis Master节点工作，只要一半以上节点存活就能正常工作，同时不依赖Redis主备异步复制，具有良好的安全性、高可用性。 然而它的实现依赖于系统时间，当发生时钟跳变的时候，也会出现安全性问题</description>
+    </item>
+    
+    <item>
+      <title>业务锁的选择</title>
+      <link>https://matteo-gz.github.io/coding/docs/redis/lock/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/redis/lock/</guid>
+      <description> etcd锁 vs redis锁 # 都可以用来保证多个服务或进程对共享资源的访问是互斥的.
+特性 etcd 锁 redis 锁 实现方式 基于 etcd 的 KV 数据库 基于 redis 的 set 数据结构 一致性 强一致性 弱一致性 性能 较低 较高 可靠性 较高 较低 分布式存储系统对比点
+数据存储 数据分布 数据复制 数据一致性 算法选型 盘点必要因素
+工作原理 优劣势 适用场景 技术实现 </description>
+    </item>
+    
+    <item>
+      <title>数据类型</title>
+      <link>https://matteo-gz.github.io/coding/docs/redis/data_type/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/redis/data_type/</guid>
+      <description>数据类型 # string hash list set sorted Set hyperLogLog Geo bitmap Stream 数据持久化 # RDB # Redis Database 会产生多个文件，每个文件代表某一个时刻的redis数据。对于aof来说，基于rdb恢复数据会更快。
+AOF # Append Only File 将每条写入命令写入日志中，在redis重启的时候通过日志文件重构数据
+redis故障Rdb会丢失更多的数据，Rdb快照都是隔5分钟或者更长时间生成，而aof每隔一秒就会执行一次，所以只会丢失一秒钟的数据。
+布隆过滤器 # 优点：优点很明显，二进制组成的数组，占用内存极少，并且插入和查询速度都足够快。
+缺点：随着数据的增加，误判率会增加；还有无法判断数据一定存在；另外还有一个重要缺点，无法删除数据
+场景 # 缓存击穿 # cache breakdown
+指一些很热的数据在缓存过期后,同时有大量请求集中打击数据库,一出现就“击穿”缓存去访问数据库
+热数据永不过期 加上互斥锁 缓存穿透 # cache penetration
+指查询一个本来不应该存在的数据,结果却没有穿透缓存查询后台,导致对数据库的空请求
+逻辑检查,小于1 或者是字符串不允许之类的 使用布隆过滤器 缓存空对象,如果是网络恶意攻击（每次key不一样，且数据库不存在），缓存占用了更多的内存,缓存空对象要考虑到缓存时间的设置 缓存雪崩 # cache avalanche
+过期时间设置随机值 分布式部署且均匀分布热点数据 热数据永不过期 服务降级 服务熔断 请求限流 redis高可用 # 主从复制 用于数据备份和读写分离 哨兵机制 自动故障转移提供高可用 集群机制 节点间数据同步和分区机制实现横向扩展和强一致性 redis过期策略 # 定时删除:在设置 key 的过期时间时，同时创建一个定时事件，当时间到达时，由事件处理器自动执行 key 的删除操作 定期删除:每隔一段时间删除 惰性删除:获取的时候判断是否过期 Redis 选择「惰性删除+定期删除」这两种策略配和使用</description>
+    </item>
+    
+  </channel>
+</rss>

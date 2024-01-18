@@ -63,3 +63,22 @@
 - $and:[{},{},{}]
 - $or:[{},{},{}]
 - db.collection.find({$or:[{user:"1"},{"name":"2"}]})
+
+## 索引
+- 单个索引
+- 联合索引
+- 地理索引
+- 文本索引
+- 哈希索引
+
+查看索引
+- db.collection.getIndexes() # 查询所有索引
+
+创建索引
+- db.collection.createIndex(keys,option) # 创建索引
+- db.collection.createIndex({userid:1}) # 升序索引
+- db.collection.createIndex({userid:1,name:-1}) # 联合索引
+
+删除索引
+- db.collection.dropIndex(index) # 删除索引 索引名词来删
+- db.collection.dropIndexes() #删所有索引

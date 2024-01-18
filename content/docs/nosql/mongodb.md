@@ -82,3 +82,7 @@
 删除索引
 - db.collection.dropIndex(index) # 删除索引 索引名词来删
 - db.collection.dropIndexes() #删所有索引
+
+## 性能排查
+- db.collection().find().explain() # 
+  

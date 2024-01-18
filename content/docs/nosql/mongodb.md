@@ -25,17 +25,41 @@
 数据库
 - admin #后台权限库
 
-curd
+## curd
 - db.$collection.insert() # 集合变量的插入
 - db.$collection.insertMany() # 集合变量的多个插入
+  
+查找  
 - db.$collection.find() # 集合查找
 - db.$collection.find({}) # 集合带条件查找
 - db.$collection.findOne() # 集合查找1条
 -  db.$collection.find({},{user:1,name:0}) # 让user字段显示,让name字段不显示出来
 -  try{}catch(e){ print(e) } # 捕获错误
+
+更新  
 -  db.collection.update() # 覆盖更新
 -  db.collection.update({},{$set:{}}) #局部修改
 -  db.collection.update({},{},{multi:true}) # 更新多条
 -  db.collection.update({},{$inc:{}}) # 自增操作
 
+删除
+- db.collection.remove() # 删除
   
+## 高级查询
+- db.collection.count() # 统计查询
+- db.collection.find().limit(2) # 页数
+- db.collection.find().limit(2).skip(4) # 页数 跳过多少条
+- db.collection.find().sort({key:1}) # 升序
+- db.collection.find().sort({key:-1}) # 降序
+
+正则查询
+- db.collection.find(key:/expr/) # 正则匹配查询
+
+比较查询
+- db.collection.find({key:{$gt:100 }}) # 大于操作
+-  db.collection.find({key:{$in: ["1001","1002"] }}) # where in
+
+条件查询
+- $and:[{},{},{}]
+- $or:[{},{},{}]
+- db.collection.find({$or:[{user:"1"},{"name":"2"}]})

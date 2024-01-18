@@ -86,3 +86,19 @@
 ## 性能排查
 - db.collection().find().explain() # 
   
+## 副本集
+类似redis哨兵模式
+## 分片集群
+
+路由
+配置服务
+分片
+## 安全认证
+权限
+- read
+- readWrite
+- root #超管
+- userAdmin # 数据库创建和修改用户
+
+副本集安全认证
+- 通过key文件

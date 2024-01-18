@@ -32,3 +32,10 @@ curd
 - db.$collection.find({}) # 集合带条件查找
 - db.$collection.findOne() # 集合查找1条
 -  db.$collection.find({},{user:1,name:0}) # 让user字段显示,让name字段不显示出来
+-  try{}catch(e){ print(e) } # 捕获错误
+-  db.collection.update() # 覆盖更新
+-  db.collection.update({},{$set:{}}) #局部修改
+-  db.collection.update({},{},{multi:true}) # 更新多条
+-  db.collection.update({},{$inc:{}}) # 自增操作
+
+  

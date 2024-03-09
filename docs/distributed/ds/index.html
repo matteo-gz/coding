@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="CAP # CA CP AP 场景 单机 强一致性,金融银行 及时响应,容忍一致性,商品查询 应用 Mysql Redis,Hbase,ZooKeeper CoachDB,Cassandra,DynamoDB 数据分片 # 数据分片即按照一定的规则将数据路由到相应的存储节点中，从而降低单存储节点带来的读写压力
+哈希分片 根据key的哈希值来决定分配到哪个分片 不依赖key的顺序,只依赖哈希函数 范围分片 根据key的大小顺序来决定属于哪个分片范围 依赖于key有明确的大小顺序 一致性哈希环 将节点和数据项映射到一个虚拟圆环空间上 通过这种映射来实现分片和负载均衡 对节点添加和删除影响较小 一致性哈希环 # hash算法的缺陷 好刚: 7分钟视频详解一致性hash 算法
+以图片服务器举例,我们希望图片均匀落在不同的图片服务器上.
+以图片名为key,hash后再根据机器数取模,在此规则下.
+假设图片hash=6,机器数为3, %3=0,则图片放置在0号服务器.
+此时,我们增加1台机器,机器数为4,图片hash依旧为6,%4=2,则映射到了2号服务器,
+此时原本在0号服务器的图片,去了2号服务器查找不存在,又要通过后端服务查找一遍,可能导致缓存雪崩.
+一致性哈希环 则可以减少数据失效程度. hash偏斜与虚拟节点 数据结构分类 # 分布式数据库
+MySQL Sharding Microsoft SQL Azure Google Spanner Alibaba OceanBase KV数据库
+Redis Memcache 分布式存储系统
+Ceph GFS HDFS Swift 数据一致性 # 强一致性 数据一致性 Raft 协议 Gossip 协议 Gossip # 分布式原理：10分钟带你全面了解Gossip协议！">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="03.1 分布式存储" />
+<meta property="og:description" content="CAP # CA CP AP 场景 单机 强一致性,金融银行 及时响应,容忍一致性,商品查询 应用 Mysql Redis,Hbase,ZooKeeper CoachDB,Cassandra,DynamoDB 数据分片 # 数据分片即按照一定的规则将数据路由到相应的存储节点中，从而降低单存储节点带来的读写压力
+哈希分片 根据key的哈希值来决定分配到哪个分片 不依赖key的顺序,只依赖哈希函数 范围分片 根据key的大小顺序来决定属于哪个分片范围 依赖于key有明确的大小顺序 一致性哈希环 将节点和数据项映射到一个虚拟圆环空间上 通过这种映射来实现分片和负载均衡 对节点添加和删除影响较小 一致性哈希环 # hash算法的缺陷 好刚: 7分钟视频详解一致性hash 算法
+以图片服务器举例,我们希望图片均匀落在不同的图片服务器上.
+以图片名为key,hash后再根据机器数取模,在此规则下.
+假设图片hash=6,机器数为3, %3=0,则图片放置在0号服务器.
+此时,我们增加1台机器,机器数为4,图片hash依旧为6,%4=2,则映射到了2号服务器,
+此时原本在0号服务器的图片,去了2号服务器查找不存在,又要通过后端服务查找一遍,可能导致缓存雪崩.
+一致性哈希环 则可以减少数据失效程度. hash偏斜与虚拟节点 数据结构分类 # 分布式数据库
+MySQL Sharding Microsoft SQL Azure Google Spanner Alibaba OceanBase KV数据库
+Redis Memcache 分布式存储系统
+Ceph GFS HDFS Swift 数据一致性 # 强一致性 数据一致性 Raft 协议 Gossip 协议 Gossip # 分布式原理：10分钟带你全面了解Gossip协议！" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matteo-gz.github.io/coding/docs/distributed/ds/" /><meta property="article:section" content="docs" />
+
+
+<title>03.1 分布式存储 | Coding cheat sheet</title>
+<link rel="manifest" href="/coding/manifest.json">
+<link rel="icon" href="/coding/favicon.png" >
+<link rel="stylesheet" href="/coding/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/coding/flexsearch.min.js"></script>
+  <script defer src="/coding/en.search.min.ca27584bb505fe4f3bb7b408a6d00e5da0f3530606ee09a2e10ed328794bc3cc.js" integrity="sha256-yidYS7UF/k87t7QIptAOXaDzUwYG7gmi4Q7TKHlLw8w=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/coding/"><span>Coding cheat sheet</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>golang</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/chan/" class="">chan</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/defer/" class="">defer</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gc/" class="">gc</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/interface/" class="">interface</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/map/" class="">map</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/select/" class="">select</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/slice/" class="">slice</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gmp/" class="">调度</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mq</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/rabbitmq/" class="">rabbitmq</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/type/" class="">其他mq</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mysql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/b_tree/" class="">b &#43; 树</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/count/" class="">count</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/ddl/" class="">ddl</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/delete/" class="">delete与truncate</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/transaction/" class="">事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/log/" class="">日志</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/mysql_index/" class="">索引</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/lock/" class="">锁</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>nosql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/nosql/mongodb/" class="">mongoDB</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>redis</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/consistency/" class="">一致性风险</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/lock/" class="">业务锁的选择</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>web</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/web/openresty/" class="">OpenResty</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/define/" class="">01. 分布式简介</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/coordination/" class="">02. 协调与同步</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/dt/" class="">02.1 分布式事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/resource/" class="">03. 资源与负载</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/ds/" class="active">03.1 分布式存储</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/distributed/" class="">BASE理论</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/etcd/" class="">etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/raft-etcd/" class="">raft与etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/saas/" class="">SaaS多租户存储设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>微服务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/framework/" class="">Go框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kubernetes/" class="">k8s</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/k8s_network/" class="">k8s网络</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kratos/" class="">kratos框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/discovery/" class="">服务发现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/ddd/" class="">领域驱动设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/coding/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>03.1 分布式存储</strong>
+
+  <label for="toc-control">
+    
+    <img src="/coding/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cap">CAP</a></li>
+    <li><a href="#数据分片">数据分片</a>
+      <ul>
+        <li><a href="#一致性哈希环">一致性哈希环</a></li>
+      </ul>
+    </li>
+    <li><a href="#数据结构分类">数据结构分类</a></li>
+    <li><a href="#数据一致性">数据一致性</a>
+      <ul>
+        <li><a href="#gossip">Gossip</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="cap">
+  CAP
+  <a class="anchor" href="#cap">#</a>
+</h2>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>CA</th>
+<th>CP</th>
+<th>AP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>场景</td>
+<td>单机</td>
+<td>强一致性,金融银行</td>
+<td>及时响应,容忍一致性,商品查询</td>
+</tr>
+<tr>
+<td>应用</td>
+<td>Mysql</td>
+<td>Redis,Hbase,ZooKeeper</td>
+<td>CoachDB,Cassandra,DynamoDB</td>
+</tr>
+</tbody>
+</table>
+<h2 id="数据分片">
+  数据分片
+  <a class="anchor" href="#%e6%95%b0%e6%8d%ae%e5%88%86%e7%89%87">#</a>
+</h2>
+<blockquote>
+<p>数据分片即按照一定的规则将数据路由到相应的存储节点中，从而降低单存储节点带来的读写压力</p>
+</blockquote>
+<ul>
+<li>哈希分片
+<ul>
+<li>根据key的哈希值来决定分配到哪个分片</li>
+<li>不依赖key的顺序,只依赖哈希函数</li>
+</ul>
+</li>
+<li>范围分片
+<ul>
+<li>根据key的大小顺序来决定属于哪个分片范围</li>
+<li>依赖于key有明确的大小顺序</li>
+</ul>
+</li>
+<li>一致性哈希环
+<ul>
+<li>将节点和数据项映射到一个虚拟圆环空间上</li>
+<li>通过这种映射来实现分片和负载<strong>均衡</strong></li>
+<li>对节点添加和删除影响较小</li>
+</ul>
+</li>
+</ul>
+<h3 id="一致性哈希环">
+  一致性哈希环
+  <a class="anchor" href="#%e4%b8%80%e8%87%b4%e6%80%a7%e5%93%88%e5%b8%8c%e7%8e%af">#</a>
+</h3>
+<p>hash算法的缺陷 <a href="https://www.bilibili.com/video/BV1Hs411j73w/">好刚: 7分钟视频详解一致性hash 算法</a></p>
+<blockquote>
+<p>以图片服务器举例,我们希望图片均匀落在不同的图片服务器上.</p>
+<p>以图片名为key,hash后再根据机器数取模,在此规则下.</p>
+<p>假设图片hash=6,机器数为3, %3=0,则图片放置在0号服务器.</p>
+<p>此时,我们增加1台机器,机器数为4,图片hash依旧为6,%4=2,则映射到了2号服务器,</p>
+<p>此时原本在0号服务器的图片,去了2号服务器查找不存在,又要通过后端服务查找一遍,可能导致缓存雪崩.</p>
+</blockquote>
+<p>一致性哈希环 则可以减少数据失效程度.
+<img src="../p1.png" alt="一致性哈希环" />
+hash偏斜与虚拟节点
+<img src="../p2.png" alt="hash偏斜" /></p>
+<h2 id="数据结构分类">
+  数据结构分类
+  <a class="anchor" href="#%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%88%86%e7%b1%bb">#</a>
+</h2>
+<p>分布式数据库</p>
+<ul>
+<li>MySQL Sharding</li>
+<li>Microsoft SQL Azure</li>
+<li>Google Spanner</li>
+<li>Alibaba OceanBase</li>
+</ul>
+<p>KV数据库</p>
+<ul>
+<li>Redis</li>
+<li>Memcache</li>
+</ul>
+<p>分布式存储系统</p>
+<ul>
+<li>Ceph</li>
+<li>GFS</li>
+<li>HDFS</li>
+<li>Swift</li>
+</ul>
+<h2 id="数据一致性">
+  数据一致性
+  <a class="anchor" href="#%e6%95%b0%e6%8d%ae%e4%b8%80%e8%87%b4%e6%80%a7">#</a>
+</h2>
+<ul>
+<li>强一致性</li>
+<li>数据一致性
+<ul>
+<li>Raft 协议</li>
+<li>Gossip 协议</li>
+</ul>
+</li>
+</ul>
+<h3 id="gossip">
+  Gossip
+  <a class="anchor" href="#gossip">#</a>
+</h3>
+<p><a href="https://www.bilibili.com/video/BV1dz4y1M7N7/">分布式原理：10分钟带你全面了解Gossip协议！</a></p>
+<blockquote>
+<p>Gossip 的协议原理有一种传播机制叫谣言传播，指的是当一个节点有了新数据后，这个节点就变成了活跃状态，并周期性地向其他节点发送新数据，直到所有的节点都存储了该条数据。这种方式达成的数据一致性是 “最终一致性”，即执行数据更新操作后，经过一定的时间，集群内各个节点所存储的数据最终会达成一致，很适合动态变化的分布式系统。</p>
+</blockquote>
+<p>如果<strong>副本多</strong>、参与共识的节点多，那就更适合采用 Gossip 这种最终一致性协议</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cap">CAP</a></li>
+    <li><a href="#数据分片">数据分片</a>
+      <ul>
+        <li><a href="#一致性哈希环">一致性哈希环</a></li>
+      </ul>
+    </li>
+    <li><a href="#数据结构分类">数据结构分类</a></li>
+    <li><a href="#数据一致性">数据一致性</a>
+      <ul>
+        <li><a href="#gossip">Gossip</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>golang on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/docs/go/</link>
+    <description>Recent content in golang on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/docs/go/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>chan</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/chan/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/chan/</guid>
+      <description>操作chan # 创建chan
+make(chan T, [capacity]) // 无缓冲,创建一个int类型的channel ch := make(chan int) // 有缓冲,创建一个容量为5的int缓冲channel ch := make(chan int, 5) 收发chan
+ch &amp;lt;- elem // 发送 elem := &amp;lt;-ch //接收 // 如果ok为false,那么可能是channel已经关闭,读到的时关闭后的零值。 i, ok &amp;lt;- ch panic 情况 # 向关闭chan发送 关闭nil chan 关闭已关闭 chan 操作 nil chan 已关闭chan 正常chan 关闭 panic panic 正常关闭 读 阻塞 读可以继续读取元素,直到chan空,如果读完会读到对应类型的零值 读会阻塞,如果chan空或者没有其他goroutine写入 写 阻塞 panic 写也可能阻塞,如果chan空间不足或者没有其他goroutine读取 数据结构 # type hchan struct { qcount uint // 队列中的元素总数量 dataqsiz uint // 循环队列的长度 buf unsafe.</description>
+    </item>
+    
+    <item>
+      <title>defer</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/defer/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/defer/</guid>
+      <description>流程 # 返回值 = xxx
+调用defer函数
+空的return</description>
+    </item>
+    
+    <item>
+      <title>gc</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/gc/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/gc/</guid>
+      <description> 标记-清除算法 # STW(stop the world) 让程序暂停，程序出现卡顿
+标记(Mark phase) 清除(Sweep phase) 缺点:
+STW，stop the world；让程序暂停，程序出现卡顿 (重要问题)； 标记需要扫描整个heap； 清除数据会产生heap碎片。 三色并发标记法 # 说明 # 三种颜色:白色( White)、灰色(Grey)、黑色(Black)
+白色:对象尚未被访问过 灰色:对象正在被访问 黑色:对象访问已完成 工作流程
+开始时所有对象都为白色 根集对象(比如静态变量等)被标记为灰色 递归地遍历从根集对象开始的可达对象,将其标记为灰色 从灰色队列中取出一个对象,访问其字段和引用,将被访问的对象标记为灰色 对灰色队列中的对象进行同样操作,直到队列为空 将遍历完的灰色对象标记为黑色 从第二步开始重复遍历过程,直到没有灰色对象为止 遍历结束后,扫描内存,回收尚为白色的未使用对象 白-&amp;gt;灰-&amp;gt;黑
+第一步 , 每次新创建的对象，默认的颜色都是标记为&amp;quot;白色&amp;quot; 第二步, 每次GC回收开始, 会从根节点开始遍历所有对象，把遍历到的对象从白色集合放入“灰色” 第三步, 遍历灰色集合，将灰色对象引用的对象从白色集合放入灰色集合，之后将此灰色对象放入黑色集合 为了在GC过程中保证数据的安全，我们在开始三色标记之前就会加上STW，在扫描确定黑白对象之后再放开STW
+没有STW加持下存在的问题 # 条件1: 一个白色对象被黑色对象引用(白色被挂在黑色下) 条件2: 灰色对象与它之间的可达关系的白色对象遭到破坏(灰色同时丢了该白色) 如果当以上两个条件同时满足时，就会出现对象丢失现象!
+屏障机制 # 三色不变式
+强三色不变式 不存在黑色对象引用到白色对象的指针 弱三色不变式 所有被黑色对象引用的白色对象都处于灰色保护状态。 插入屏障 # 在A对象引用B对象的时候，B对象被标记为灰色
+删除屏障 # 被删除的对象，如果自身为灰色或者白色，那么被标记为灰色
+缺点
+插入写屏障：结束时需要STW来重新扫描栈，标记栈上引用的白色对象的存活； 删除写屏障：回收精度低，GC开始时STW扫描堆栈来记录初始快照，这个过程会保护开始时刻的所有存活对象。 混合写屏障 # GC开始将栈上的对象全部扫描并标记为黑色(之后不再进行第二次重复扫描，无需STW)， GC期间，任何在栈上创建的新对象，均为黑色。 被删除的对象标记为灰色。 被添加的对象标记为灰色。 </description>
+    </item>
+    
+    <item>
+      <title>interface</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/interface/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/interface/</guid>
+      <description>数据结构 # // 结构体表示包含方法的接口 type iface struct { tab *itab data unsafe.Pointer } // 结构体表示不包含任何方法的 interface{} 类型 type eface struct { _type *_type data unsafe.Pointer } Golang中的Interface可以被看作是一个Wrapper，它是一个包含了value和type的二元组
+// 必须类型和值都为nil才算真正的nil var a interface{} = nil // tab = nil, data = nil var b interface{} = (*int)(nil) // tab 包含 *int 类型信息, data = nil fmt.Println(a == nil) // true fmt.Println(b == nil) // false 判断动态值为nil # func IsNil(i interface{}) bool { vi := reflect.</description>
+    </item>
+    
+    <item>
+      <title>map</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/map/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/map/</guid>
+      <description>结构 # // Go map 的头部。 type hmap struct { // 注意：hmap 的格式也被编码在 cmd/compile/internal/reflectdata/reflect.go 中。 // 确保这个定义与编译器的定义保持同步。 count int // 存储在 map 中的键值对数量。必须是第一个字段（用于内置函数 len()） flags uint8 // 表示 map 的状态标志，包括了迭代器是否在使用中、是否正在进行扩容等信息。 B uint8 // 存储桶的数量的对数，实际桶的数量为len(buckets) == 2^B(bucketShift bucket的位移值)。 noverflow uint16 // 溢出桶数量的估计值。 number of overflows hash0 uint32 // 哈希种子。 buckets unsafe.Pointer // 存储键值对的桶数组，其长度为 2^B。如果 count 为 0，则可能为 nil。 oldbuckets unsafe.Pointer // 扩容时旧的桶数组，长度为 2^(B-1)，用于数据搬迁。如果没有扩容，则为 nil。 nevacuate uintptr // 扩容时已经完成搬迁的桶数量。 &amp;#34;not evacuate&amp;#34; extra *mapextra // 可选字段，指向了一些额外的 map 属性，例如 map 的类型信息和哈希函数。 } // mapextra 包含了一些不是所有 map 都有的字段。 type mapextra struct { // 如果 key 和 elem 都不包含指针，并且它们都可以内联，那么我们标记 bucket 的类型不包含指针。 // 这样可以避免扫描这样的 map。 // 然而，bmap.</description>
+    </item>
+    
+    <item>
+      <title>select</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/select/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/select/</guid>
+      <description> select作用 # case后面必须是io操作 监听case，没满足阻塞 有满足，任选1个执行 default 处理case都不满足情况 select不产生忙轮询 select 自身不带有循环机制 需要借助for break跳出一个选项 </description>
+    </item>
+    
+    <item>
+      <title>slice</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/slice/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/slice/</guid>
+      <description> 数据结构 # type slice struct { array unsafe.Pointer // 指向底层数组的指针 len int // 切片的长度 cap int // 切片的容量 } 创建 # // 此时s的长度和容量都是5。 s := make([]int, 5) // 此时s的长度是3,容量是5。 s := make([]int, 3, 5) 取值 # // 该方式没有指定开始和结束索引,是从索引0开始取到结束,即取出slice a的全部元素。 a[:] // 指定开始索引startIndex,结束索引取到结尾。比如a[1:]会从索引1开始取到最后一个元素。 a[startIndex:] // 指定结束索引endIndex,开始索引从0开始。比如a[:3]会取索引0-2的三个元素。 a[:endIndex] // 指定开始索引和结束索引区间。比如a[1:3]会取索引1和2的两个元素。 a[startIndex:endIndex] // 三个索引除了开始和结束索引外,还可以指定容量capacity。这种方式可以对slice进行扩容或缩容操作。 a[startIndex:endIndex:capacity] a[:] - 取所有元素 a[1:] - 从索引1开始取到最后 a[:3] - 取索引0-2的三个元素 a[1:3] - 取索引1和2的两个元素 a[1:3:5] - 取索引1-2但是扩容为5 </description>
+    </item>
+    
+    <item>
+      <title>数据类型</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/data_type/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/data_type/</guid>
+      <description> 值类型 # int bool 引用类型 # chan slice map 指针 make 和 new # make 初始化内置的数据结构
+slice := make([]int, 0, 100) hash := make(map[int]bool, 10) ch := make(chan int, 5) new 返回类型指针
+i := new(int) var v int i := &amp;amp;v 支持平台 # // 可列出支持的平台 GOOS GOARCH go tool dist list </description>
+    </item>
+    
+    <item>
+      <title>调度</title>
+      <link>https://matteo-gz.github.io/coding/docs/go/gmp/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/go/gmp/</guid>
+      <description>优点 # 内存占用 创建和销毀 切换 GMP # GMP含义
+GoRoutine Go协程，是参与调度与执行的最小单位 Machine 系统级线程 Processor 逻辑处理器 关联了的本地可运行G的队列(也称为LRQ)，最多可存放256个G 线程与进程
+线程 独立调度的基本单位 进程 资源拥有的基本单位 变量 # M0 启动程序后的编号为0的主线程 G0 是每次启动一个M都会第一个创建的GoRoutine，G0仅用于负责调度的G 优势 # work stealing # 工作窃取模型。当一个P(逻辑处理器)的任务队列为空时,它可以随机从其他非空P的任务队列偷取任务来执行。这可以最大限度地提高 CPU 的利用率。
+handle off # 使能M暂时释放对P的控制,让其他等待中的M接管P,从而实现充分利用多核资源。比如一个阻塞的goroutine释放了CPU,M就可以handle off,让其他M的goroutine运行。</description>
+    </item>
+    
+  </channel>
+</rss>

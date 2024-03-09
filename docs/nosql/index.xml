@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>nosql on Coding cheat sheet</title>
+    <link>https://matteo-gz.github.io/coding/docs/nosql/</link>
+    <description>Recent content in nosql on Coding cheat sheet</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://matteo-gz.github.io/coding/docs/nosql/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>mongoDB</title>
+      <link>https://matteo-gz.github.io/coding/docs/nosql/mongodb/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://matteo-gz.github.io/coding/docs/nosql/mongodb/</guid>
+      <description>https://www.mongodb.com/docs/
+客户端推荐 compass or navicat
+服务端由cpp编写.
+mongo 客户端,类似redis-cli mongod 服务端启动,类似mysqld 配置
+日志目录 数据存储目录 守护进程方式启动 绑定ip启动 端口号 27017 命令
+#显示数据库 show dbs #切换数据库 use &amp;lt;数据库&amp;gt; #打印当前数据库 db #删库操作 db.dropDatabase() # 创建集合 db.createCollection(name) # 显示集合 show collections # 删除集合 db.&amp;lt;集合&amp;gt;.drop() 数据库
+#后台权限库 admin curd # # 集合变量的插入 https://www.mongodb.com/docs/manual/tutorial/insert-documents/ db.collection.insert() # 集合变量的多个插入 db.collection.insertMany() 查找
+# 集合查找 db.collection.find() # 集合带条件查找 db.collection.find({}) # 集合查找1条 db.collection.findOne() # 让user字段显示,让name字段不显示出来 db.collection.find({},{user:1,name:0}) # 捕获错误 try{}catch(e){ print(e) } 更新
+# 覆盖更新 db.</description>
+    </item>
+    
+  </channel>
+</rss>

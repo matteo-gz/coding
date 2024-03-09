@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content=" CAP原则 # CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分布式计算系统中，无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三个目标。
+一致性（Consistency） # 要求系统中的所有节点在同一时间具有相同的数据副本，即读操作应该总是返回最新的写操作结果。
+可用性（Availability） # 要求系统在任何时间都能够提供响应，即系统不会因为部分节点的故障而导致整个系统不可用。
+分区容错性（Partition tolerance） # 要求系统能够继续运行，即使系统内的节点因为网络问题而无法互相通信。
+根据CAP原则，当一个分布式系统发生网络分区时，为了保证系统的可用性和分区容错性，必须选择放弃一致性。这意味着在网络分区的情况下，系统可以选择提供最新的数据副本（追求一致性），但这可能导致某些节点无法访问；或者系统可以继续提供访问服务（追求可用性），但可能会返回不一致的数据。
+需要注意的是，CAP原则并不是指分布式系统必须选择放弃一致性，而是在面临网络分区时需要做出权衡。不同的分布式系统可能会根据具体需求和设计目标，在一致性、可用性和分区容错性之间作出不同的选择。
+BASE理论 # BASE理论是对CAP原则的一种实践指导，它是对传统ACID（原子性、一致性、隔离性和持久性）事务模型的一种松散的替代理论。BASE代表着基本可用（Basically Available）、软状态（Soft State）和最终一致性（Eventually Consistent）。
+基本可用（Basically Available） # 系统保证在面对部分故障或者分区的情况下，仍能够提供基本的可用性和服务能力，即系统能够对用户的请求做出响应，尽管可能会有部分功能受限或者性能下降。
+软状态（Soft State） # 系统中的数据状态不需要实时保持一致，允许在一段时间内存在不同节点之间的数据副本不一致的情况。这意味着系统可以容忍一定的数据冗余和延迟，以换取更高的可用性和性能。
+最终一致性（Eventually Consistent） # 系统会在一段时间内尽可能地使数据达到一致状态，但并不要求实时保证一致性。系统允许在数据复制和同步过程中存在一定的延迟和不一致，但最终会达到一致的状态。
+BASE理论的核心思想是放宽对一致性的要求，以换取更高的可用性、性能和分布式容错性。相比于ACID事务模型的强一致性和事务隔离性，BASE理论提供了更灵活的设计选择，特别适用于大规模分布式系统和互联网应用场景。在BASE理论下，系统设计者需要根据具体的业务需求和系统特点，权衡一致性与可用性之间的取舍，并选择适当的一致性模型和数据同步策略。
+幂等 # 任意次执行都会产生相同的结果：无论操作执行多少次，结果都是相同的，不会受到重复执行的影响。 重复执行不会引起不良影响：对于已经执行过的操作，重复执行不会引起任何不良的副作用或状态变化。 ">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="BASE理论" />
+<meta property="og:description" content=" CAP原则 # CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分布式计算系统中，无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三个目标。
+一致性（Consistency） # 要求系统中的所有节点在同一时间具有相同的数据副本，即读操作应该总是返回最新的写操作结果。
+可用性（Availability） # 要求系统在任何时间都能够提供响应，即系统不会因为部分节点的故障而导致整个系统不可用。
+分区容错性（Partition tolerance） # 要求系统能够继续运行，即使系统内的节点因为网络问题而无法互相通信。
+根据CAP原则，当一个分布式系统发生网络分区时，为了保证系统的可用性和分区容错性，必须选择放弃一致性。这意味着在网络分区的情况下，系统可以选择提供最新的数据副本（追求一致性），但这可能导致某些节点无法访问；或者系统可以继续提供访问服务（追求可用性），但可能会返回不一致的数据。
+需要注意的是，CAP原则并不是指分布式系统必须选择放弃一致性，而是在面临网络分区时需要做出权衡。不同的分布式系统可能会根据具体需求和设计目标，在一致性、可用性和分区容错性之间作出不同的选择。
+BASE理论 # BASE理论是对CAP原则的一种实践指导，它是对传统ACID（原子性、一致性、隔离性和持久性）事务模型的一种松散的替代理论。BASE代表着基本可用（Basically Available）、软状态（Soft State）和最终一致性（Eventually Consistent）。
+基本可用（Basically Available） # 系统保证在面对部分故障或者分区的情况下，仍能够提供基本的可用性和服务能力，即系统能够对用户的请求做出响应，尽管可能会有部分功能受限或者性能下降。
+软状态（Soft State） # 系统中的数据状态不需要实时保持一致，允许在一段时间内存在不同节点之间的数据副本不一致的情况。这意味着系统可以容忍一定的数据冗余和延迟，以换取更高的可用性和性能。
+最终一致性（Eventually Consistent） # 系统会在一段时间内尽可能地使数据达到一致状态，但并不要求实时保证一致性。系统允许在数据复制和同步过程中存在一定的延迟和不一致，但最终会达到一致的状态。
+BASE理论的核心思想是放宽对一致性的要求，以换取更高的可用性、性能和分布式容错性。相比于ACID事务模型的强一致性和事务隔离性，BASE理论提供了更灵活的设计选择，特别适用于大规模分布式系统和互联网应用场景。在BASE理论下，系统设计者需要根据具体的业务需求和系统特点，权衡一致性与可用性之间的取舍，并选择适当的一致性模型和数据同步策略。
+幂等 # 任意次执行都会产生相同的结果：无论操作执行多少次，结果都是相同的，不会受到重复执行的影响。 重复执行不会引起不良影响：对于已经执行过的操作，重复执行不会引起任何不良的副作用或状态变化。 " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matteo-gz.github.io/coding/docs/distributed/distributed/" /><meta property="article:section" content="docs" />
+
+
+<title>BASE理论 | Coding cheat sheet</title>
+<link rel="manifest" href="/coding/manifest.json">
+<link rel="icon" href="/coding/favicon.png" >
+<link rel="stylesheet" href="/coding/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/coding/flexsearch.min.js"></script>
+  <script defer src="/coding/en.search.min.ca27584bb505fe4f3bb7b408a6d00e5da0f3530606ee09a2e10ed328794bc3cc.js" integrity="sha256-yidYS7UF/k87t7QIptAOXaDzUwYG7gmi4Q7TKHlLw8w=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/coding/"><span>Coding cheat sheet</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>golang</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/chan/" class="">chan</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/defer/" class="">defer</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gc/" class="">gc</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/interface/" class="">interface</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/map/" class="">map</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/select/" class="">select</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/slice/" class="">slice</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gmp/" class="">调度</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mq</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/rabbitmq/" class="">rabbitmq</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/type/" class="">其他mq</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mysql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/b_tree/" class="">b &#43; 树</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/count/" class="">count</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/ddl/" class="">ddl</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/delete/" class="">delete与truncate</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/transaction/" class="">事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/log/" class="">日志</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/mysql_index/" class="">索引</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/lock/" class="">锁</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>nosql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/nosql/mongodb/" class="">mongoDB</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>redis</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/consistency/" class="">一致性风险</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/lock/" class="">业务锁的选择</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>web</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/web/openresty/" class="">OpenResty</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/define/" class="">01. 分布式简介</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/coordination/" class="">02. 协调与同步</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/dt/" class="">02.1 分布式事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/resource/" class="">03. 资源与负载</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/ds/" class="">03.1 分布式存储</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/distributed/" class="active">BASE理论</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/etcd/" class="">etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/raft-etcd/" class="">raft与etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/saas/" class="">SaaS多租户存储设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>微服务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/framework/" class="">Go框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kubernetes/" class="">k8s</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/k8s_network/" class="">k8s网络</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kratos/" class="">kratos框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/discovery/" class="">服务发现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/ddd/" class="">领域驱动设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/coding/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>BASE理论</strong>
+
+  <label for="toc-control">
+    
+    <img src="/coding/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cap原则">CAP原则</a>
+      <ul>
+        <li><a href="#一致性consistency">一致性（Consistency）</a></li>
+        <li><a href="#可用性availability">可用性（Availability）</a></li>
+        <li><a href="#分区容错性partition-tolerance">分区容错性（Partition tolerance）</a></li>
+      </ul>
+    </li>
+    <li><a href="#base理论">BASE理论</a>
+      <ul>
+        <li><a href="#基本可用basically-available">基本可用（Basically Available）</a></li>
+        <li><a href="#软状态soft-state">软状态（Soft State）</a></li>
+        <li><a href="#最终一致性eventually-consistent">最终一致性（Eventually Consistent）</a></li>
+      </ul>
+    </li>
+    <li><a href="#幂等">幂等</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="cap原则">
+  CAP原则
+  <a class="anchor" href="#cap%e5%8e%9f%e5%88%99">#</a>
+</h2>
+<p>CAP原则（CAP theorem）是一个分布式系统理论，它指出在一个分布式计算系统中，无法同时满足一致性（Consistency）、可用性（Availability）和分区容错性（Partition tolerance）这三个目标。</p>
+<h3 id="一致性consistency">
+  一致性（Consistency）
+  <a class="anchor" href="#%e4%b8%80%e8%87%b4%e6%80%a7consistency">#</a>
+</h3>
+<p>要求系统中的所有节点在同一时间具有相同的数据副本，即读操作应该总是返回最新的写操作结果。</p>
+<h3 id="可用性availability">
+  可用性（Availability）
+  <a class="anchor" href="#%e5%8f%af%e7%94%a8%e6%80%a7availability">#</a>
+</h3>
+<p>要求系统在任何时间都能够提供响应，即系统不会因为部分节点的故障而导致整个系统不可用。</p>
+<h3 id="分区容错性partition-tolerance">
+  分区容错性（Partition tolerance）
+  <a class="anchor" href="#%e5%88%86%e5%8c%ba%e5%ae%b9%e9%94%99%e6%80%a7partition-tolerance">#</a>
+</h3>
+<p>要求系统能够继续运行，即使系统内的节点因为网络问题而无法互相通信。</p>
+<p>根据CAP原则，当一个分布式系统发生网络分区时，为了保证系统的可用性和分区容错性，必须选择放弃一致性。这意味着在网络分区的情况下，系统可以选择提供最新的数据副本（追求一致性），但这可能导致某些节点无法访问；或者系统可以继续提供访问服务（追求可用性），但可能会返回不一致的数据。</p>
+<p>需要注意的是，CAP原则并不是指分布式系统必须选择放弃一致性，而是在面临网络分区时需要做出权衡。不同的分布式系统可能会根据具体需求和设计目标，在一致性、可用性和分区容错性之间作出不同的选择。</p>
+<h2 id="base理论">
+  BASE理论
+  <a class="anchor" href="#base%e7%90%86%e8%ae%ba">#</a>
+</h2>
+<p>BASE理论是对CAP原则的一种实践指导，它是对传统ACID（原子性、一致性、隔离性和持久性）事务模型的一种松散的替代理论。BASE代表着基本可用（Basically Available）、软状态（Soft State）和最终一致性（Eventually Consistent）。</p>
+<h3 id="基本可用basically-available">
+  基本可用（Basically Available）
+  <a class="anchor" href="#%e5%9f%ba%e6%9c%ac%e5%8f%af%e7%94%a8basically-available">#</a>
+</h3>
+<p>系统保证在面对部分故障或者分区的情况下，仍能够提供基本的可用性和服务能力，即系统能够对用户的请求做出响应，尽管可能会有部分功能受限或者性能下降。</p>
+<h3 id="软状态soft-state">
+  软状态（Soft State）
+  <a class="anchor" href="#%e8%bd%af%e7%8a%b6%e6%80%81soft-state">#</a>
+</h3>
+<p>系统中的数据状态不需要实时保持一致，允许在一段时间内存在不同节点之间的数据副本不一致的情况。这意味着系统可以容忍一定的数据冗余和延迟，以换取更高的可用性和性能。</p>
+<h3 id="最终一致性eventually-consistent">
+  最终一致性（Eventually Consistent）
+  <a class="anchor" href="#%e6%9c%80%e7%bb%88%e4%b8%80%e8%87%b4%e6%80%a7eventually-consistent">#</a>
+</h3>
+<p>系统会在一段时间内尽可能地使数据达到一致状态，但并不要求实时保证一致性。系统允许在数据复制和同步过程中存在一定的延迟和不一致，但最终会达到一致的状态。</p>
+<p>BASE理论的核心思想是放宽对一致性的要求，以换取更高的可用性、性能和分布式容错性。相比于ACID事务模型的强一致性和事务隔离性，BASE理论提供了更灵活的设计选择，特别适用于大规模分布式系统和互联网应用场景。在BASE理论下，系统设计者需要根据具体的业务需求和系统特点，权衡一致性与可用性之间的取舍，并选择适当的一致性模型和数据同步策略。</p>
+<h2 id="幂等">
+  幂等
+  <a class="anchor" href="#%e5%b9%82%e7%ad%89">#</a>
+</h2>
+<ol>
+<li>任意次执行都会产生相同的结果：无论操作执行多少次，结果都是相同的，不会受到重复执行的影响。</li>
+<li>重复执行不会引起不良影响：对于已经执行过的操作，重复执行不会引起任何不良的副作用或状态变化。</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#cap原则">CAP原则</a>
+      <ul>
+        <li><a href="#一致性consistency">一致性（Consistency）</a></li>
+        <li><a href="#可用性availability">可用性（Availability）</a></li>
+        <li><a href="#分区容错性partition-tolerance">分区容错性（Partition tolerance）</a></li>
+      </ul>
+    </li>
+    <li><a href="#base理论">BASE理论</a>
+      <ul>
+        <li><a href="#基本可用basically-available">基本可用（Basically Available）</a></li>
+        <li><a href="#软状态soft-state">软状态（Soft State）</a></li>
+        <li><a href="#最终一致性eventually-consistent">最终一致性（Eventually Consistent）</a></li>
+      </ul>
+    </li>
+    <li><a href="#幂等">幂等</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

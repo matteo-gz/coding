@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="事务特性 # 原子性 atomicity 一致性 consistency 隔离性 isolation 持久性 durability 如何保证事务特性?
+持久性是通过 redo log （重做日志）来保证的； 原子性是通过 undo log（回滚日志） 来保证的； 隔离性是通过 MVCC（多版本并发控制） 或锁机制来保证的； 一致性则是通过持久性&#43;原子性&#43;隔离性来保证； 并发问题 # 脏读 # 如果一个事务「读到」了另一个「未提交事务修改过的数据」，就意味着发生了「脏读」现象
+不可重复读 # 在一个事务内多次读取同一个数据，如果出现前后两次读到的数据不一样的情况，就意味着发生了「不可重复读」现象。
+幻读 # 在一个事务内多次查询某个符合查询条件的「记录数量」，如果出现前后两次查询到的记录数量不一样的情况，就意味着发生了「幻读」现象。
+事务隔离级别 # read uncommitted 读未提及 # 可能发生脏读、不可重复读和幻读现象
+read committed 读已提交 # 可能发生不可重复读和幻读现象
+repeatable read 可重复读 # 可能发生幻读现象
+MySQL InnoDB 引擎的默认隔离级别
+serializable 串行化 # MySQL InnoDB 引擎的默认隔离级别虽然是「可重复读」，但是它很大程度上避免幻读现象
+针对快照读（普通 select 语句），是通过 MVCC 方式解决了幻读，因为可重复读隔离级别下，事务执行过程中看到的数据，一直跟这个事务启动时看到的数据是一致的，即使中途有其他事务插入了一条数据，是查询不出来这条数据的，所以就很好了避免幻读问题。 针对当前读（select &hellip; for update 等语句），是通过 next-key lock（记录锁&#43;间隙锁）方式解决了幻读，因为当执行 select &hellip; for update 语句的时候，会加上 next-key lock，如果有其他事务在 next-key lock 锁范围内插入了一条记录，那么这个插入语句就会被阻塞，无法成功插入，所以就很好了避免幻读问题。 MVCC # multi-version concurrency control,多版本并发控制">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="事务" />
+<meta property="og:description" content="事务特性 # 原子性 atomicity 一致性 consistency 隔离性 isolation 持久性 durability 如何保证事务特性?
+持久性是通过 redo log （重做日志）来保证的； 原子性是通过 undo log（回滚日志） 来保证的； 隔离性是通过 MVCC（多版本并发控制） 或锁机制来保证的； 一致性则是通过持久性&#43;原子性&#43;隔离性来保证； 并发问题 # 脏读 # 如果一个事务「读到」了另一个「未提交事务修改过的数据」，就意味着发生了「脏读」现象
+不可重复读 # 在一个事务内多次读取同一个数据，如果出现前后两次读到的数据不一样的情况，就意味着发生了「不可重复读」现象。
+幻读 # 在一个事务内多次查询某个符合查询条件的「记录数量」，如果出现前后两次查询到的记录数量不一样的情况，就意味着发生了「幻读」现象。
+事务隔离级别 # read uncommitted 读未提及 # 可能发生脏读、不可重复读和幻读现象
+read committed 读已提交 # 可能发生不可重复读和幻读现象
+repeatable read 可重复读 # 可能发生幻读现象
+MySQL InnoDB 引擎的默认隔离级别
+serializable 串行化 # MySQL InnoDB 引擎的默认隔离级别虽然是「可重复读」，但是它很大程度上避免幻读现象
+针对快照读（普通 select 语句），是通过 MVCC 方式解决了幻读，因为可重复读隔离级别下，事务执行过程中看到的数据，一直跟这个事务启动时看到的数据是一致的，即使中途有其他事务插入了一条数据，是查询不出来这条数据的，所以就很好了避免幻读问题。 针对当前读（select &hellip; for update 等语句），是通过 next-key lock（记录锁&#43;间隙锁）方式解决了幻读，因为当执行 select &hellip; for update 语句的时候，会加上 next-key lock，如果有其他事务在 next-key lock 锁范围内插入了一条记录，那么这个插入语句就会被阻塞，无法成功插入，所以就很好了避免幻读问题。 MVCC # multi-version concurrency control,多版本并发控制" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matteo-gz.github.io/coding/docs/mysql/transaction/" /><meta property="article:section" content="docs" />
+
+
+<title>事务 | Coding cheat sheet</title>
+<link rel="manifest" href="/coding/manifest.json">
+<link rel="icon" href="/coding/favicon.png" >
+<link rel="stylesheet" href="/coding/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/coding/flexsearch.min.js"></script>
+  <script defer src="/coding/en.search.min.ca27584bb505fe4f3bb7b408a6d00e5da0f3530606ee09a2e10ed328794bc3cc.js" integrity="sha256-yidYS7UF/k87t7QIptAOXaDzUwYG7gmi4Q7TKHlLw8w=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/coding/"><span>Coding cheat sheet</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>golang</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/chan/" class="">chan</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/defer/" class="">defer</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gc/" class="">gc</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/interface/" class="">interface</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/map/" class="">map</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/select/" class="">select</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/slice/" class="">slice</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gmp/" class="">调度</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mq</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/rabbitmq/" class="">rabbitmq</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/type/" class="">其他mq</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mysql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/b_tree/" class="">b &#43; 树</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/count/" class="">count</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/ddl/" class="">ddl</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/delete/" class="">delete与truncate</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/transaction/" class="active">事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/log/" class="">日志</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/mysql_index/" class="">索引</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/lock/" class="">锁</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>nosql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/nosql/mongodb/" class="">mongoDB</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>redis</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/consistency/" class="">一致性风险</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/lock/" class="">业务锁的选择</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>web</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/web/openresty/" class="">OpenResty</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/define/" class="">01. 分布式简介</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/coordination/" class="">02. 协调与同步</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/dt/" class="">02.1 分布式事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/resource/" class="">03. 资源与负载</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/ds/" class="">03.1 分布式存储</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/distributed/" class="">BASE理论</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/etcd/" class="">etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/raft-etcd/" class="">raft与etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/saas/" class="">SaaS多租户存储设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>微服务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/framework/" class="">Go框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kubernetes/" class="">k8s</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/k8s_network/" class="">k8s网络</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kratos/" class="">kratos框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/discovery/" class="">服务发现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/ddd/" class="">领域驱动设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/coding/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>事务</strong>
+
+  <label for="toc-control">
+    
+    <img src="/coding/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#事务特性">事务特性</a></li>
+    <li><a href="#并发问题">并发问题</a>
+      <ul>
+        <li><a href="#脏读">脏读</a></li>
+        <li><a href="#不可重复读">不可重复读</a></li>
+        <li><a href="#幻读">幻读</a></li>
+      </ul>
+    </li>
+    <li><a href="#事务隔离级别">事务隔离级别</a>
+      <ul>
+        <li><a href="#read-uncommitted-读未提及">read uncommitted 读未提及</a></li>
+        <li><a href="#read-committed-读已提交">read committed 读已提交</a></li>
+        <li><a href="#repeatable-read--可重复读">repeatable read  可重复读</a></li>
+        <li><a href="#serializable-串行化">serializable 串行化</a></li>
+      </ul>
+    </li>
+    <li><a href="#mvcc">MVCC</a>
+      <ul>
+        <li><a href="#隐式字段">隐式字段</a></li>
+        <li><a href="#undo日志">undo日志</a></li>
+        <li><a href="#快照读">快照读</a></li>
+        <li><a href="#当前读">当前读</a></li>
+        <li><a href="#read-view">Read View</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="事务特性">
+  事务特性
+  <a class="anchor" href="#%e4%ba%8b%e5%8a%a1%e7%89%b9%e6%80%a7">#</a>
+</h2>
+<ul>
+<li>原子性 atomicity</li>
+<li>一致性 consistency</li>
+<li>隔离性 isolation</li>
+<li>持久性 durability</li>
+</ul>
+<p>如何保证事务特性?</p>
+<ul>
+<li>持久性是通过 redo log （重做日志）来保证的；</li>
+<li>原子性是通过 undo log（回滚日志） 来保证的；</li>
+<li>隔离性是通过 MVCC（多版本并发控制） 或锁机制来保证的；</li>
+<li>一致性则是通过持久性+原子性+隔离性来保证；</li>
+</ul>
+<h2 id="并发问题">
+  并发问题
+  <a class="anchor" href="#%e5%b9%b6%e5%8f%91%e9%97%ae%e9%a2%98">#</a>
+</h2>
+<h3 id="脏读">
+  脏读
+  <a class="anchor" href="#%e8%84%8f%e8%af%bb">#</a>
+</h3>
+<p>如果一个事务「读到」了另一个「未提交事务修改过的数据」，就意味着发生了「脏读」现象</p>
+<h3 id="不可重复读">
+  不可重复读
+  <a class="anchor" href="#%e4%b8%8d%e5%8f%af%e9%87%8d%e5%a4%8d%e8%af%bb">#</a>
+</h3>
+<p>在一个事务内多次读取同一个数据，如果出现前后两次读到的数据不一样的情况，就意味着发生了「不可重复读」现象。</p>
+<h3 id="幻读">
+  幻读
+  <a class="anchor" href="#%e5%b9%bb%e8%af%bb">#</a>
+</h3>
+<p>在一个事务内多次查询某个符合查询条件的「记录数量」，如果出现前后两次查询到的记录数量不一样的情况，就意味着发生了「幻读」现象。</p>
+<h2 id="事务隔离级别">
+  事务隔离级别
+  <a class="anchor" href="#%e4%ba%8b%e5%8a%a1%e9%9a%94%e7%a6%bb%e7%ba%a7%e5%88%ab">#</a>
+</h2>
+<h3 id="read-uncommitted-读未提及">
+  read uncommitted 读未提及
+  <a class="anchor" href="#read-uncommitted-%e8%af%bb%e6%9c%aa%e6%8f%90%e5%8f%8a">#</a>
+</h3>
+<p>可能发生脏读、不可重复读和幻读现象</p>
+<h3 id="read-committed-读已提交">
+  read committed 读已提交
+  <a class="anchor" href="#read-committed-%e8%af%bb%e5%b7%b2%e6%8f%90%e4%ba%a4">#</a>
+</h3>
+<p>可能发生不可重复读和幻读现象</p>
+<h3 id="repeatable-read--可重复读">
+  repeatable read  可重复读
+  <a class="anchor" href="#repeatable-read--%e5%8f%af%e9%87%8d%e5%a4%8d%e8%af%bb">#</a>
+</h3>
+<p>可能发生幻读现象</p>
+<p>MySQL InnoDB 引擎的默认隔离级别</p>
+<h3 id="serializable-串行化">
+  serializable 串行化
+  <a class="anchor" href="#serializable-%e4%b8%b2%e8%a1%8c%e5%8c%96">#</a>
+</h3>
+<p>MySQL InnoDB 引擎的默认隔离级别虽然是「可重复读」，但是它很大程度上避免幻读现象</p>
+<ul>
+<li>针对快照读（普通 select 语句），是通过 MVCC 方式解决了幻读，因为可重复读隔离级别下，事务执行过程中看到的数据，一直跟这个事务启动时看到的数据是一致的，即使中途有其他事务插入了一条数据，是查询不出来这条数据的，所以就很好了避免幻读问题。</li>
+<li>针对当前读（select &hellip; for update 等语句），是通过 next-key lock（记录锁+间隙锁）方式解决了幻读，因为当执行 select &hellip; for update 语句的时候，会加上 next-key lock，如果有其他事务在 next-key lock 锁范围内插入了一条记录，那么这个插入语句就会被阻塞，无法成功插入，所以就很好了避免幻读问题。</li>
+</ul>
+<h2 id="mvcc">
+  MVCC
+  <a class="anchor" href="#mvcc">#</a>
+</h2>
+<p>multi-version concurrency control,多版本并发控制</p>
+<h3 id="隐式字段">
+  隐式字段
+  <a class="anchor" href="#%e9%9a%90%e5%bc%8f%e5%ad%97%e6%ae%b5">#</a>
+</h3>
+<p>对于InnoDB存储引擎，每一行记录都有两个隐藏列DB_TRX_ID、DB_ROLL_PTR，如果表中没有主键和非NULL唯一键时，则还会有第三个隐藏的主键列DB_ROW_ID</p>
+<h3 id="undo日志">
+  undo日志
+  <a class="anchor" href="#undo%e6%97%a5%e5%bf%97">#</a>
+</h3>
+<h3 id="快照读">
+  快照读
+  <a class="anchor" href="#%e5%bf%ab%e7%85%a7%e8%af%bb">#</a>
+</h3>
+<p>读取的是记录数据的可见版本</p>
+<h3 id="当前读">
+  当前读
+  <a class="anchor" href="#%e5%bd%93%e5%89%8d%e8%af%bb">#</a>
+</h3>
+<p>读取的是记录数据的最新版本</p>
+<h3 id="read-view">
+  Read View
+  <a class="anchor" href="#read-view">#</a>
+</h3>
+<ul>
+<li>m_ids ：指的是在创建 Read View 时，当前数据库中「活跃事务」的事务 id 列表，注意是一个列表，“活跃事务”指的就是，启动了但还没提交的事务。</li>
+<li>min_trx_id ：指的是在创建 Read View 时，当前数据库中「活跃事务」中事务 id 最小的事务，也就是 m_ids 的最小值。</li>
+<li>max_trx_id ：这个并不是 m_ids 的最大值，而是创建 Read View 时当前数据库中应该给下一个事务的 id 值，也就是全局事务中最大的事务 id 值 + 1；</li>
+<li>creator_trx_id ：指的是创建该 Read View 的事务的事务 id。</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#事务特性">事务特性</a></li>
+    <li><a href="#并发问题">并发问题</a>
+      <ul>
+        <li><a href="#脏读">脏读</a></li>
+        <li><a href="#不可重复读">不可重复读</a></li>
+        <li><a href="#幻读">幻读</a></li>
+      </ul>
+    </li>
+    <li><a href="#事务隔离级别">事务隔离级别</a>
+      <ul>
+        <li><a href="#read-uncommitted-读未提及">read uncommitted 读未提及</a></li>
+        <li><a href="#read-committed-读已提交">read committed 读已提交</a></li>
+        <li><a href="#repeatable-read--可重复读">repeatable read  可重复读</a></li>
+        <li><a href="#serializable-串行化">serializable 串行化</a></li>
+      </ul>
+    </li>
+    <li><a href="#mvcc">MVCC</a>
+      <ul>
+        <li><a href="#隐式字段">隐式字段</a></li>
+        <li><a href="#undo日志">undo日志</a></li>
+        <li><a href="#快照读">快照读</a></li>
+        <li><a href="#当前读">当前读</a></li>
+        <li><a href="#read-view">Read View</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

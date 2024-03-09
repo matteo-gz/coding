@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="结构 # // Go map 的头部。 type hmap struct { // 注意：hmap 的格式也被编码在 cmd/compile/internal/reflectdata/reflect.go 中。 // 确保这个定义与编译器的定义保持同步。 count int // 存储在 map 中的键值对数量。必须是第一个字段（用于内置函数 len()） flags uint8 // 表示 map 的状态标志，包括了迭代器是否在使用中、是否正在进行扩容等信息。 B uint8 // 存储桶的数量的对数，实际桶的数量为len(buckets) == 2^B(bucketShift bucket的位移值)。 noverflow uint16 // 溢出桶数量的估计值。 number of overflows hash0 uint32 // 哈希种子。 buckets unsafe.Pointer // 存储键值对的桶数组，其长度为 2^B。如果 count 为 0，则可能为 nil。 oldbuckets unsafe.Pointer // 扩容时旧的桶数组，长度为 2^(B-1)，用于数据搬迁。如果没有扩容，则为 nil。 nevacuate uintptr // 扩容时已经完成搬迁的桶数量。 &#34;not evacuate&#34; extra *mapextra // 可选字段，指向了一些额外的 map 属性，例如 map 的类型信息和哈希函数。 } // mapextra 包含了一些不是所有 map 都有的字段。 type mapextra struct { // 如果 key 和 elem 都不包含指针，并且它们都可以内联，那么我们标记 bucket 的类型不包含指针。 // 这样可以避免扫描这样的 map。 // 然而，bmap.">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="map" />
+<meta property="og:description" content="结构 # // Go map 的头部。 type hmap struct { // 注意：hmap 的格式也被编码在 cmd/compile/internal/reflectdata/reflect.go 中。 // 确保这个定义与编译器的定义保持同步。 count int // 存储在 map 中的键值对数量。必须是第一个字段（用于内置函数 len()） flags uint8 // 表示 map 的状态标志，包括了迭代器是否在使用中、是否正在进行扩容等信息。 B uint8 // 存储桶的数量的对数，实际桶的数量为len(buckets) == 2^B(bucketShift bucket的位移值)。 noverflow uint16 // 溢出桶数量的估计值。 number of overflows hash0 uint32 // 哈希种子。 buckets unsafe.Pointer // 存储键值对的桶数组，其长度为 2^B。如果 count 为 0，则可能为 nil。 oldbuckets unsafe.Pointer // 扩容时旧的桶数组，长度为 2^(B-1)，用于数据搬迁。如果没有扩容，则为 nil。 nevacuate uintptr // 扩容时已经完成搬迁的桶数量。 &#34;not evacuate&#34; extra *mapextra // 可选字段，指向了一些额外的 map 属性，例如 map 的类型信息和哈希函数。 } // mapextra 包含了一些不是所有 map 都有的字段。 type mapextra struct { // 如果 key 和 elem 都不包含指针，并且它们都可以内联，那么我们标记 bucket 的类型不包含指针。 // 这样可以避免扫描这样的 map。 // 然而，bmap." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matteo-gz.github.io/coding/docs/go/map/" /><meta property="article:section" content="docs" />
+
+
+<title>map | Coding cheat sheet</title>
+<link rel="manifest" href="/coding/manifest.json">
+<link rel="icon" href="/coding/favicon.png" >
+<link rel="stylesheet" href="/coding/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/coding/flexsearch.min.js"></script>
+  <script defer src="/coding/en.search.min.ca27584bb505fe4f3bb7b408a6d00e5da0f3530606ee09a2e10ed328794bc3cc.js" integrity="sha256-yidYS7UF/k87t7QIptAOXaDzUwYG7gmi4Q7TKHlLw8w=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/coding/"><span>Coding cheat sheet</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>golang</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/chan/" class="">chan</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/defer/" class="">defer</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gc/" class="">gc</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/interface/" class="">interface</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/map/" class="active">map</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/select/" class="">select</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/slice/" class="">slice</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gmp/" class="">调度</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mq</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/rabbitmq/" class="">rabbitmq</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/type/" class="">其他mq</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mysql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/b_tree/" class="">b &#43; 树</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/count/" class="">count</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/ddl/" class="">ddl</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/delete/" class="">delete与truncate</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/transaction/" class="">事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/log/" class="">日志</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/mysql_index/" class="">索引</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/lock/" class="">锁</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>nosql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/nosql/mongodb/" class="">mongoDB</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>redis</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/consistency/" class="">一致性风险</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/lock/" class="">业务锁的选择</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>web</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/web/openresty/" class="">OpenResty</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/define/" class="">01. 分布式简介</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/coordination/" class="">02. 协调与同步</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/dt/" class="">02.1 分布式事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/resource/" class="">03. 资源与负载</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/ds/" class="">03.1 分布式存储</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/distributed/" class="">BASE理论</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/etcd/" class="">etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/raft-etcd/" class="">raft与etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/saas/" class="">SaaS多租户存储设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>微服务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/framework/" class="">Go框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kubernetes/" class="">k8s</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/k8s_network/" class="">k8s网络</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kratos/" class="">kratos框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/discovery/" class="">服务发现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/ddd/" class="">领域驱动设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/coding/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>map</strong>
+
+  <label for="toc-control">
+    
+    <img src="/coding/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#结构">结构</a></li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="结构">
+  结构
+  <a class="anchor" href="#%e7%bb%93%e6%9e%84">#</a>
+</h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// Go map 的头部。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">hmap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 注意：hmap 的格式也被编码在 cmd/compile/internal/reflectdata/reflect.go 中。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 确保这个定义与编译器的定义保持同步。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">count</span>     <span style="color:#66d9ef">int</span>   <span style="color:#75715e">// 存储在 map 中的键值对数量。必须是第一个字段（用于内置函数 len()）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">flags</span>     <span style="color:#66d9ef">uint8</span> <span style="color:#75715e">// 表示 map 的状态标志，包括了迭代器是否在使用中、是否正在进行扩容等信息。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">B</span>         <span style="color:#66d9ef">uint8</span> <span style="color:#75715e">// 存储桶的数量的对数，实际桶的数量为len(buckets) == 2^B(bucketShift bucket的位移值)。 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">noverflow</span> <span style="color:#66d9ef">uint16</span> <span style="color:#75715e">// 溢出桶数量的估计值。 number of overflows
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">hash0</span>     <span style="color:#66d9ef">uint32</span> <span style="color:#75715e">// 哈希种子。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">buckets</span>    <span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span> <span style="color:#75715e">// 存储键值对的桶数组，其长度为 2^B。如果 count 为 0，则可能为 nil。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">oldbuckets</span> <span style="color:#a6e22e">unsafe</span>.<span style="color:#a6e22e">Pointer</span> <span style="color:#75715e">// 扩容时旧的桶数组，长度为 2^(B-1)，用于数据搬迁。如果没有扩容，则为 nil。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">nevacuate</span>  <span style="color:#66d9ef">uintptr</span>        <span style="color:#75715e">// 扩容时已经完成搬迁的桶数量。 &#34;not evacuate&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">extra</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">mapextra</span> <span style="color:#75715e">// 可选字段，指向了一些额外的 map 属性，例如 map 的类型信息和哈希函数。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// mapextra 包含了一些不是所有 map 都有的字段。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">mapextra</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 如果 key 和 elem 都不包含指针，并且它们都可以内联，那么我们标记 bucket 的类型不包含指针。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 这样可以避免扫描这样的 map。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 然而，bmap.overflow 是一个指针。为了保持溢出桶的存活状态，我们在 hmap.extra.overflow 和 hmap.extra.oldoverflow 中存储了指向所有溢出桶的指针。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 只有当 key 和 elem 都不包含指针时才使用 overflow 和 oldoverflow。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// overflow 存储 hmap.buckets 的溢出桶。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// oldoverflow 存储 hmap.oldbuckets 的溢出桶。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 间接存储允许在 hiter 中存储一个指向切片的指针。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">overflow</span> <span style="color:#f92672">*</span>[]<span style="color:#f92672">*</span><span style="color:#a6e22e">bmap</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">oldoverflow</span> <span style="color:#f92672">*</span>[]<span style="color:#f92672">*</span><span style="color:#a6e22e">bmap</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// nextOverflow 指向一个空闲的溢出桶。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">nextOverflow</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">bmap</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// Go map 的 bucket。 bmap equal bucket map
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">bmap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// tophash 通常包含此 bucket 中每个 key 的 hash 值的高字节。 存储了键的哈希的高 8 位
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 如果 tophash[0] &lt; minTopHash，则 tophash[0] 是一个 bucket 撤离状态。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">tophash</span> [<span style="color:#a6e22e">bucketCnt</span>]<span style="color:#66d9ef">uint8</span> <span style="color:#75715e">// bucketCnt equal bucket count
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 接下来是 bucketCnt 个 key，然后是 bucketCnt 个 elem。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 注意：将所有 key 放在一起，然后将所有 elem 放在一起比交替 key/elem/key/elem/... 代码更复杂，但可以消除需要填充的情况，例如 map[int64]int8。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 最后是一个溢出指针。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">src</span><span style="color:#f92672">/</span><span style="color:#a6e22e">cmd</span><span style="color:#f92672">/</span><span style="color:#a6e22e">compile</span><span style="color:#f92672">/</span><span style="color:#a6e22e">internal</span><span style="color:#f92672">/</span><span style="color:#a6e22e">reflectdata</span><span style="color:#f92672">/</span><span style="color:#a6e22e">reflect</span>.<span style="color:#66d9ef">go</span>::<span style="color:#a6e22e">MapBucketType</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">bmap</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">topbits</span>  [<span style="color:#ae81ff">8</span>]<span style="color:#66d9ef">uint8</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">keys</span>     [<span style="color:#ae81ff">8</span>]<span style="color:#a6e22e">keytype</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">values</span>   [<span style="color:#ae81ff">8</span>]<span style="color:#a6e22e">valuetype</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">pad</span>      <span style="color:#66d9ef">uintptr</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">overflow</span> <span style="color:#66d9ef">uintptr</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#结构">结构</a></li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

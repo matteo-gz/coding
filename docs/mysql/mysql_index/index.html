@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en-us" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="指定索引 # 使用FORCE INDEX关键字强制使用指定的索引,强制使用指定的索引
+SELECT * FROM table FORCE INDEX (index_name) WHERE condition; 使用USE INDEX关键字建议使用指定索引,优先使用指定的索引
+SELECT * FROM table USE INDEX (index_name) WHERE condition; STRAIGHT_JOIN
+强制按书写顺序连接JOIN表,固定连接顺序
+索引分类 # 按数据结构分类索引 # B&#43;tree索引 Hash索引 Full-text索引 按物理存储分类索引 # 聚簇索引（主键索引） 二级索引（辅助索引） 按字段特性分类索引 # 主键索引 唯一索引 普通索引 前缀索引 按字段个数分类索引 # 单列索引 联合索引 优化 # 覆盖索引 # 这种在二级索引的 B&#43;Tree 就能查询到结果的过程就叫作「覆盖索引」，也就是只需要查一个 B&#43;Tree 就能找到数据
+CREATE INDEX user_name_age ON user(name, age); SELECT name, age FROM user WHERE name = &#39;Tom&#39;; 索引下推 # 索引下推优化（index condition pushdown)， 可以在联合索引遍历过程中，对联合索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#343a40">
+<meta name="color-scheme" content="light dark"><meta property="og:title" content="索引" />
+<meta property="og:description" content="指定索引 # 使用FORCE INDEX关键字强制使用指定的索引,强制使用指定的索引
+SELECT * FROM table FORCE INDEX (index_name) WHERE condition; 使用USE INDEX关键字建议使用指定索引,优先使用指定的索引
+SELECT * FROM table USE INDEX (index_name) WHERE condition; STRAIGHT_JOIN
+强制按书写顺序连接JOIN表,固定连接顺序
+索引分类 # 按数据结构分类索引 # B&#43;tree索引 Hash索引 Full-text索引 按物理存储分类索引 # 聚簇索引（主键索引） 二级索引（辅助索引） 按字段特性分类索引 # 主键索引 唯一索引 普通索引 前缀索引 按字段个数分类索引 # 单列索引 联合索引 优化 # 覆盖索引 # 这种在二级索引的 B&#43;Tree 就能查询到结果的过程就叫作「覆盖索引」，也就是只需要查一个 B&#43;Tree 就能找到数据
+CREATE INDEX user_name_age ON user(name, age); SELECT name, age FROM user WHERE name = &#39;Tom&#39;; 索引下推 # 索引下推优化（index condition pushdown)， 可以在联合索引遍历过程中，对联合索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://matteo-gz.github.io/coding/docs/mysql/mysql_index/" /><meta property="article:section" content="docs" />
+
+
+<title>索引 | Coding cheat sheet</title>
+<link rel="manifest" href="/coding/manifest.json">
+<link rel="icon" href="/coding/favicon.png" >
+<link rel="stylesheet" href="/coding/book.min.33a48f5432973b8ff9a82679d9e45d67f2c15d4399bd2829269455cfe390b5e8.css" integrity="sha256-M6SPVDKXO4/5qCZ52eRdZ/LBXUOZvSgpJpRVz&#43;OQteg=" crossorigin="anonymous">
+  <script defer src="/coding/flexsearch.min.js"></script>
+  <script defer src="/coding/en.search.min.ca27584bb505fe4f3bb7b408a6d00e5da0f3530606ee09a2e10ed328794bc3cc.js" integrity="sha256-yidYS7UF/k87t7QIptAOXaDzUwYG7gmi4Q7TKHlLw8w=" crossorigin="anonymous"></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+  
+</head>
+<body dir="ltr">
+  <input type="checkbox" class="hidden toggle" id="menu-control" />
+  <input type="checkbox" class="hidden toggle" id="toc-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      <div class="book-menu-content">
+        
+  <nav>
+<h2 class="book-brand">
+  <a class="flex align-center" href="/coding/"><span>Coding cheat sheet</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>golang</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/chan/" class="">chan</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/defer/" class="">defer</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gc/" class="">gc</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/interface/" class="">interface</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/map/" class="">map</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/select/" class="">select</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/slice/" class="">slice</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/go/gmp/" class="">调度</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mq</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/rabbitmq/" class="">rabbitmq</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mq/type/" class="">其他mq</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>mysql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/b_tree/" class="">b &#43; 树</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/count/" class="">count</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/ddl/" class="">ddl</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/delete/" class="">delete与truncate</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/transaction/" class="">事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/log/" class="">日志</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/mysql_index/" class="active">索引</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/mysql/lock/" class="">锁</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>nosql</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/nosql/mongodb/" class="">mongoDB</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>redis</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/consistency/" class="">一致性风险</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/lock/" class="">业务锁的选择</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/redis/data_type/" class="">数据类型</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>web</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/web/openresty/" class="">OpenResty</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>分布式</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/define/" class="">01. 分布式简介</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/coordination/" class="">02. 协调与同步</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/dt/" class="">02.1 分布式事务</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/resource/" class="">03. 资源与负载</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/ds/" class="">03.1 分布式存储</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/distributed/" class="">BASE理论</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/etcd/" class="">etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/raft-etcd/" class="">raft与etcd</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/distributed/saas/" class="">SaaS多租户存储设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <span>微服务</span>
+  
+
+          
+  <ul>
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/framework/" class="">Go框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kubernetes/" class="">k8s</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/k8s_network/" class="">k8s网络</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/kratos/" class="">kratos框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/discovery/" class="">服务发现</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+  
+
+  
+    <a href="/coding/docs/ms/ddd/" class="">领域驱动设计</a>
+  
+
+        </li>
+      
+    
+  </ul>
+
+        </li>
+      
+    
+  </ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var e=document.querySelector("aside .book-menu-content");addEventListener("beforeunload",function(){localStorage.setItem("menu.scrollTop",e.scrollTop)}),e.scrollTop=localStorage.getItem("menu.scrollTop")})()</script>
+
+
+ 
+      </div>
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/coding/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>索引</strong>
+
+  <label for="toc-control">
+    
+    <img src="/coding/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+    
+  </label>
+</div>
+
+
+  
+  <aside class="hidden clearfix">
+    
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#指定索引">指定索引</a></li>
+    <li><a href="#索引分类">索引分类</a>
+      <ul>
+        <li><a href="#按数据结构分类索引">按数据结构分类索引</a></li>
+        <li><a href="#按物理存储分类索引">按物理存储分类索引</a></li>
+        <li><a href="#按字段特性分类索引">按字段特性分类索引</a></li>
+        <li><a href="#按字段个数分类索引">按字段个数分类索引</a></li>
+      </ul>
+    </li>
+    <li><a href="#优化">优化</a>
+      <ul>
+        <li><a href="#覆盖索引">覆盖索引</a></li>
+        <li><a href="#索引下推">索引下推</a></li>
+        <li><a href="#最左匹配原则">最左匹配原则</a></li>
+        <li><a href="#前缀索引">前缀索引</a></li>
+        <li><a href="#索引区分度">索引区分度</a></li>
+        <li><a href="#主键索引最好是自增的">主键索引最好是自增的</a></li>
+        <li><a href="#索引最好设置为-not-null">索引最好设置为 NOT NULL</a></li>
+        <li><a href="#防止索引失效">防止索引失效</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+
+  </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h2 id="指定索引">
+  指定索引
+  <a class="anchor" href="#%e6%8c%87%e5%ae%9a%e7%b4%a2%e5%bc%95">#</a>
+</h2>
+<p>使用FORCE INDEX关键字强制使用指定的索引,强制使用指定的索引</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">table</span> <span style="color:#66d9ef">FORCE</span> <span style="color:#66d9ef">INDEX</span> (index_name) 
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> condition;
+</span></span></code></pre></div><p>使用USE INDEX关键字建议使用指定索引,优先使用指定的索引</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">table</span> USE <span style="color:#66d9ef">INDEX</span> (index_name)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">WHERE</span> condition;
+</span></span></code></pre></div><p>STRAIGHT_JOIN</p>
+<p>强制按书写顺序连接JOIN表,固定连接顺序</p>
+<h2 id="索引分类">
+  索引分类
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e5%88%86%e7%b1%bb">#</a>
+</h2>
+<h3 id="按数据结构分类索引">
+  按数据结构分类索引
+  <a class="anchor" href="#%e6%8c%89%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%88%86%e7%b1%bb%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<ul>
+<li>B+tree索引</li>
+<li>Hash索引</li>
+<li>Full-text索引</li>
+</ul>
+<h3 id="按物理存储分类索引">
+  按物理存储分类索引
+  <a class="anchor" href="#%e6%8c%89%e7%89%a9%e7%90%86%e5%ad%98%e5%82%a8%e5%88%86%e7%b1%bb%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<ul>
+<li>聚簇索引（主键索引）</li>
+<li>二级索引（辅助索引）</li>
+</ul>
+<h3 id="按字段特性分类索引">
+  按字段特性分类索引
+  <a class="anchor" href="#%e6%8c%89%e5%ad%97%e6%ae%b5%e7%89%b9%e6%80%a7%e5%88%86%e7%b1%bb%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<ul>
+<li>主键索引</li>
+<li>唯一索引</li>
+<li>普通索引</li>
+<li>前缀索引</li>
+</ul>
+<h3 id="按字段个数分类索引">
+  按字段个数分类索引
+  <a class="anchor" href="#%e6%8c%89%e5%ad%97%e6%ae%b5%e4%b8%aa%e6%95%b0%e5%88%86%e7%b1%bb%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<ul>
+<li>单列索引</li>
+<li>联合索引</li>
+</ul>
+<h2 id="优化">
+  优化
+  <a class="anchor" href="#%e4%bc%98%e5%8c%96">#</a>
+</h2>
+<h3 id="覆盖索引">
+  覆盖索引
+  <a class="anchor" href="#%e8%a6%86%e7%9b%96%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<p>这种在二级索引的 B+Tree 就能查询到结果的过程就叫作「覆盖索引」，也就是只需要查一个 B+Tree 就能找到数据</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> user_name_age <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">user</span>(name, age);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">SELECT</span> name, age <span style="color:#66d9ef">FROM</span> <span style="color:#66d9ef">user</span> <span style="color:#66d9ef">WHERE</span> name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Tom&#39;</span>;
+</span></span></code></pre></div><h3 id="索引下推">
+  索引下推
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e4%b8%8b%e6%8e%a8">#</a>
+</h3>
+<p>索引下推优化（index condition pushdown)， 可以在联合索引遍历过程中，对联合索引中包含的字段先做判断，直接过滤掉不满足条件的记录，减少回表次数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mysql" data-lang="mysql"><span style="display:flex;"><span><span style="color:#75715e"># 若存在index(username,age) , 有索引下推就会减少回表,判断username的同时不急着回表再判断age
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> user2 <span style="color:#66d9ef">where</span> username <span style="color:#66d9ef">like</span> <span style="color:#e6db74">&#39;j%&#39;</span> <span style="color:#66d9ef">and</span> age<span style="color:#f92672">=</span><span style="color:#ae81ff">99</span>;
+</span></span></code></pre></div><h3 id="最左匹配原则">
+  最左匹配原则
+  <a class="anchor" href="#%e6%9c%80%e5%b7%a6%e5%8c%b9%e9%85%8d%e5%8e%9f%e5%88%99">#</a>
+</h3>
+<p>使用联合索引时，存在最左匹配原则，也就是按照最左优先的方式进行索引的匹配</p>
+<h3 id="前缀索引">
+  前缀索引
+  <a class="anchor" href="#%e5%89%8d%e7%bc%80%e7%b4%a2%e5%bc%95">#</a>
+</h3>
+<p>是使用某个字段中字符串的前几个字符建立索引</p>
+<h3 id="索引区分度">
+  索引区分度
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e5%8c%ba%e5%88%86%e5%ba%a6">#</a>
+</h3>
+<p>建立联合索引时，要把区分度大的字段排在前面，这样区分度大的字段越有可能被更多的 SQL 使用到。</p>
+<p>区分度=distinct column / count</p>
+<p>区分度大前面,以小驱动大</p>
+<h3 id="主键索引最好是自增的">
+  主键索引最好是自增的
+  <a class="anchor" href="#%e4%b8%bb%e9%94%ae%e7%b4%a2%e5%bc%95%e6%9c%80%e5%a5%bd%e6%98%af%e8%87%aa%e5%a2%9e%e7%9a%84">#</a>
+</h3>
+<p>插入一条新记录，都是追加操作，不需要重新移动数据</p>
+<h3 id="索引最好设置为-not-null">
+  索引最好设置为 NOT NULL
+  <a class="anchor" href="#%e7%b4%a2%e5%bc%95%e6%9c%80%e5%a5%bd%e8%ae%be%e7%bd%ae%e4%b8%ba-not-null">#</a>
+</h3>
+<p>行格式中至少会用 1 字节空间存储 NULL 值列表</p>
+<h3 id="防止索引失效">
+  防止索引失效
+  <a class="anchor" href="#%e9%98%b2%e6%ad%a2%e7%b4%a2%e5%bc%95%e5%a4%b1%e6%95%88">#</a>
+</h3>
+<ul>
+<li>对索引隐式类型转换</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex flex-wrap justify-between">
+
+
+
+
+
+</div>
+
+
+
+  <script>(function(){function e(e){const t=window.getSelection(),n=document.createRange();n.selectNodeContents(e),t.removeAllRanges(),t.addRange(n)}document.querySelectorAll("pre code").forEach(t=>{t.addEventListener("click",function(){if(window.getSelection().toString())return;e(t.parentElement),navigator.clipboard&&navigator.clipboard.writeText(t.parentElement.textContent)})})})()</script>
+
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      <div class="book-toc-content">
+        
+  
+<nav id="TableOfContents">
+  <ul>
+    <li><a href="#指定索引">指定索引</a></li>
+    <li><a href="#索引分类">索引分类</a>
+      <ul>
+        <li><a href="#按数据结构分类索引">按数据结构分类索引</a></li>
+        <li><a href="#按物理存储分类索引">按物理存储分类索引</a></li>
+        <li><a href="#按字段特性分类索引">按字段特性分类索引</a></li>
+        <li><a href="#按字段个数分类索引">按字段个数分类索引</a></li>
+      </ul>
+    </li>
+    <li><a href="#优化">优化</a>
+      <ul>
+        <li><a href="#覆盖索引">覆盖索引</a></li>
+        <li><a href="#索引下推">索引下推</a></li>
+        <li><a href="#最左匹配原则">最左匹配原则</a></li>
+        <li><a href="#前缀索引">前缀索引</a></li>
+        <li><a href="#索引区分度">索引区分度</a></li>
+        <li><a href="#主键索引最好是自增的">主键索引最好是自增的</a></li>
+        <li><a href="#索引最好设置为-not-null">索引最好设置为 NOT NULL</a></li>
+        <li><a href="#防止索引失效">防止索引失效</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+ 
+      </div>
+    </aside>
+    
+  </main>
+
+  
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
